@@ -78,12 +78,12 @@ class ControllerGenerator
     protected function generateIndexMethod($modelName)
     {
         return "
-    public function index()
-    {
-        \${$modelName} = {$modelName}::all();
-        return response()->json(\${$modelName});
-    }
-    ";
+            public function index()
+            {
+                \${$modelName} = {$modelName}::all();
+                return response()->json(\${$modelName});
+            }
+        ";
     }
 
     protected function generateStoreMethod($modelName, $columnsArray)
