@@ -17,10 +17,11 @@ class ModelGenerator
     public function generate($modelName, $columns)
     {
         $this->command->call('make:model', [
-            'name' => $modelName
+            'name' => $modelName,
         ]);
 
         $modelFile = app_path("Models/{$modelName}.php");
+
         if (File::exists($modelFile)) {
             $this->updateModelFile($modelFile, $columns);
         } else {
@@ -32,17 +33,18 @@ class ModelGenerator
     {
         $fillable = $this->generateFillable($columns);
 
-        $content = FileHelper::read($modelFile);
+        $content = File::get($modelFile);
         $content = str_replace('use HasFactory;', "use HasFactory;\n\n    protected \$fillable = {$fillable};", $content);
 
-        FileHelper::write($modelFile, $content);
+        File::put($modelFile, $content);
     }
 
     protected function generateFillable($columns)
     {
         $columnsArray = explode(',', $columns);
         $fillableArray = array_map(function ($column) {
-            return "'{$column}'";
+            // Remove anything after ':' if it exists
+            return "'" . explode(':', $column)[0] . "'";
         }, $columnsArray);
 
         return '[' . implode(', ', $fillableArray) . ']';

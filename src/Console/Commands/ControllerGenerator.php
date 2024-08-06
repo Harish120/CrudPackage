@@ -1,4 +1,5 @@
 <?php
+
 namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
@@ -27,94 +28,88 @@ class ControllerGenerator
     {
         $controllerContent = file_get_contents($controllerFile);
 
-        $indexMethod = $this->generateIndexMethod($modelName);
-        $storeMethod = $this->generateStoreMethod($modelName);
-        $showMethod = $this->generateShowMethod($modelName);
-        $updateMethod = $this->generateUpdateMethod($modelName);
-        $destroyMethod = $this->generateDestroyMethod($modelName);
-
-        $controllerContent = str_replace(
-            'use App\Http\Controllers\Api\Controller;',
-            "use App\Http\Controllers\Api\Controller;\nuse App\Models\\{$modelName};",
-            $controllerContent
-        );
-
-        $controllerContent = str_replace(
-            'public function index()',
-            $indexMethod,
-            $controllerContent
-        );
-
-        $controllerContent .= $storeMethod;
-        $controllerContent .= $showMethod;
-        $controllerContent .= $updateMethod;
-        $controllerContent .= $destroyMethod;
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'index', $this->generateIndexMethod($modelName));
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'store', $this->generateStoreMethod($modelName));
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'show', $this->generateShowMethod($modelName));
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'update', $this->generateUpdateMethod($modelName));
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'destroy', $this->generateDestroyMethod($modelName));
 
         FileHelper::write($controllerFile, $controllerContent);
+    }
+
+    protected function replaceOrAddMethod($controllerContent, $methodName, $methodContent)
+    {
+        $pattern = "/public function {$methodName}\(.*?\{(.*?)\}/s";
+        if (preg_match($pattern, $controllerContent)) {
+            $controllerContent = preg_replace($pattern, $methodContent, $controllerContent);
+        } else {
+            $controllerContent .= $methodContent;
+        }
+        return $controllerContent;
     }
 
     protected function generateIndexMethod($modelName)
     {
         return "
-        public function index()
-        {
-            \${$modelName} = {$modelName}::all();
-            return response()->json(\${$modelName});
-        }
-        ";
+    public function index()
+    {
+        \${$modelName} = {$modelName}::all();
+        return response()->json(\${$modelName});
+    }
+    ";
     }
 
     protected function generateStoreMethod($modelName)
     {
         return "
-        public function store(Request \$request)
-        {
-            \$data = \$request->validate([
-                // Add validation rules here
-            ]);
+    public function store(Request \$request)
+    {
+        \$data = \$request->validate([
+            // Add validation rules here
+        ]);
 
-            \${$modelName} = {$modelName}::create(\$data);
-            return response()->json(\${$modelName}, 201);
-        }
-        ";
+        \${$modelName} = {$modelName}::create(\$data);
+        return response()->json(\${$modelName}, 201);
+    }
+    ";
     }
 
     protected function generateShowMethod($modelName)
     {
         return "
-        public function show(\$id)
-        {
-            \${$modelName} = {$modelName}::findOrFail(\$id);
-            return response()->json(\${$modelName});
-        }
-        ";
+    public function show(\$id)
+    {
+        \${$modelName} = {$modelName}::findOrFail(\$id);
+        return response()->json(\${$modelName});
+    }
+    ";
     }
 
     protected function generateUpdateMethod($modelName)
     {
         return "
-        public function update(Request \$request, \$id)
-        {
-            \${$modelName} = {$modelName}::findOrFail(\$id);
-            \$data = \$request->validate([
-                // Add validation rules here
-            ]);
+    public function update(Request \$request, \$id)
+    {
+        \${$modelName} = {$modelName}::findOrFail(\$id);
+        \$data = \$request->validate([
+            // Add validation rules here
+        ]);
 
-            \${$modelName}->update(\$data);
-            return response()->json(\${$modelName});
-        }
-        ";
+        \${$modelName}->update(\$data);
+        return response()->json(\${$modelName});
+    }
+    ";
     }
 
     protected function generateDestroyMethod($modelName)
     {
         return "
-        public function destroy(\$id)
-        {
-            \${$modelName} = {$modelName}::findOrFail(\$id);
-            \${$modelName}->delete();
-            return response()->json(['message' => '{$modelName} deleted successfully']);
-        }
-        ";
+    public function destroy(\$id)
+    {
+        \${$modelName} = {$modelName}::findOrFail(\$id);
+        \${$modelName}->delete();
+        return response()->json(['message' => '{$modelName} deleted successfully']);
+    }
+    ";
     }
 }
