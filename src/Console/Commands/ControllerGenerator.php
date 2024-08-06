@@ -28,6 +28,15 @@ class ControllerGenerator
     {
         $controllerContent = file_get_contents($controllerFile);
 
+        $modelNamespace = "App\\Models\\{$modelName}";
+        if (!str_contains($controllerContent, $modelNamespace)) {
+            $controllerContent = str_replace(
+                "namespace App\Http\Controllers\Api;",
+                "namespace App\Http\Controllers\Api;\n\nuse {$modelNamespace};",
+                $controllerContent
+            );
+        }
+
         $controllerContent = $this->replaceOrAddMethod($controllerContent, 'index', $this->generateIndexMethod($modelName));
         $controllerContent = $this->replaceOrAddMethod($controllerContent, 'store', $this->generateStoreMethod($modelName));
         $controllerContent = $this->replaceOrAddMethod($controllerContent, 'show', $this->generateShowMethod($modelName));
