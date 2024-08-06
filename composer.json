@@ -1,18 +1,19 @@
 {
-  "name": "harish/crud-package",
+  "name": "harry/crud-package",
   "description": "A package to handle Api CRUD operations in Laravel",
   "minimum-stability": "stable",
   "license": "proprietary",
   "type": "library",
   "autoload": {
     "psr-4": {
-      "Harish\\CrudPackage\\": "src/"
+      "App\\": "app/",
+      "harry\\CrudPackage\\": "packages/Harish/CrudPackage/src/"
     }
   },
   "authors": [
     {
       "name": "harry",
-      "email": "pantharish120@gmail.com"
+      "email": "pantharry120@gmail.com"
     }
   ],
   "require": {
@@ -25,5 +26,11 @@
         "Harish\\CrudPackage\\CrudPackageServiceProvider"
       ]
     }
-  }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "packages/harry/CrudPackage"
+    }
+  ]
 }
