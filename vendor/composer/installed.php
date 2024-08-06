@@ -3,7 +3,7 @@
         'name' => 'harry/crudpackage',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'c6f5d00d215fb4ecc904c962f8ce89c70ae13fe6',
+        'reference' => '99bcc9755ae10bb816aeeccf77e68a39e286d166',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -133,7 +133,7 @@
         'harry/crudpackage' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'c6f5d00d215fb4ecc904c962f8ce89c70ae13fe6',
+            'reference' => '99bcc9755ae10bb816aeeccf77e68a39e286d166',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
