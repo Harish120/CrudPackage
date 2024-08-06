@@ -1,6 +1,7 @@
 <?php
 namespace harry\CrudPackage\Commands;
 
+use harry\CrudPackage\Helpers\FileHelper;
 use Illuminate\Support\Facades\File;
 
 class ControllerGenerator
@@ -19,7 +20,7 @@ class ControllerGenerator
             '--api' => true,
         ]);
 
-        $controllerFile = app_path("Http/Controllers/{$modelName}Controller.php");
+        $controllerFile = app_path("Http/Controllers/Api/{$modelName}Controller.php");
         $this->updateControllerFile($controllerFile, $modelName);
     }
 
@@ -34,8 +35,8 @@ class ControllerGenerator
         $destroyMethod = $this->generateDestroyMethod($modelName);
 
         $controllerContent = str_replace(
-            'use App\Http\Controllers\Controller;',
-            "use App\Http\Controllers\Controller;\nuse App\Models\\{$modelName};",
+            'use App\Http\Controllers\Api\Controller;',
+            "use App\Http\Controllers\Api\Controller;\nuse App\Models\\{$modelName};",
             $controllerContent
         );
 
@@ -50,7 +51,7 @@ class ControllerGenerator
         $controllerContent .= $updateMethod;
         $controllerContent .= $destroyMethod;
 
-        file_put_contents($controllerFile, $controllerContent);
+        FileHelper::write($controllerFile, $controllerContent);
     }
 
     protected function generateIndexMethod($modelName)

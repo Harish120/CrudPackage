@@ -2,6 +2,7 @@
 
 namespace harry\CrudPackage\Commands;
 
+use harry\CrudPackage\Helpers\FileHelper;
 use Illuminate\Support\Str;
 
 class MigrationGenerator
@@ -52,6 +53,6 @@ class MigrationGenerator
             $migrationContent
         );
 
-        file_put_contents($migrationFile, $migrationContent);
+        FileHelper::write($migrationFile, $migrationContent);
     }
 }
