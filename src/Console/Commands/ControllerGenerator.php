@@ -78,11 +78,11 @@ class ControllerGenerator
     protected function generateIndexMethod($modelName)
     {
         return "
-            public function index()
-            {
-                \${$modelName} = {$modelName}::all();
-                return response()->json(\${$modelName});
-            }
+        public function index()
+        {
+            \${$modelName} = {$modelName}::all();
+            return response()->json(\${$modelName});
+        }
         ";
     }
 
@@ -90,26 +90,26 @@ class ControllerGenerator
     {
         $validationRules = $this->generateValidationRules($columnsArray);
         return "
-            public function store(Request \$request)
-            {
-                \$data = \$request->validate([
-                    $validationRules
-                ]);
-        
-                \${$modelName} = {$modelName}::create(\$data);
-                return response()->json(\${$modelName}, 201);
-            }
+        public function store(Request \$request)
+        {
+            \$data = \$request->validate([
+                $validationRules
+            ]);
+    
+            \${$modelName} = {$modelName}::create(\$data);
+            return response()->json(\${$modelName}, 201);
+        }
         ";
     }
 
     protected function generateShowMethod($modelName)
     {
         return "
-            public function show(\$id)
-            {
-                \${$modelName} = {$modelName}::findOrFail(\$id);
-                return response()->json(\${$modelName});
-            }
+        public function show(\$id)
+        {
+            \${$modelName} = {$modelName}::findOrFail(\$id);
+            return response()->json(\${$modelName});
+        }
         ";
     }
 
@@ -117,28 +117,28 @@ class ControllerGenerator
     {
         $validationRules = $this->generateValidationRules($columnsArray);
         return "
-            public function update(Request \$request, \$id)
-            {
-                \${$modelName} = {$modelName}::findOrFail(\$id);
-                \$data = \$request->validate([
-                    $validationRules
-                ]);
-        
-                \${$modelName}->update(\$data);
-                return response()->json(\${$modelName});
-            }
+        public function update(Request \$request, \$id)
+        {
+            \${$modelName} = {$modelName}::findOrFail(\$id);
+            \$data = \$request->validate([
+                $validationRules
+            ]);
+    
+            \${$modelName}->update(\$data);
+            return response()->json(\${$modelName});
+        }
         ";
     }
 
     protected function generateDestroyMethod($modelName)
     {
         return "
-            public function destroy(\$id)
-            {
-                \${$modelName} = {$modelName}::findOrFail(\$id);
-                \${$modelName}->delete();
-                return response()->json(['message' => '{$modelName} deleted successfully']);
-            }
+        public function destroy(\$id)
+        {
+            \${$modelName} = {$modelName}::findOrFail(\$id);
+            \${$modelName}->delete();
+            return response()->json(['message' => '{$modelName} deleted successfully']);
+        }
         ";
     }
 
