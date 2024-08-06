@@ -18,8 +18,8 @@ class CrudCommand extends Command
         $columns = $this->option('columns');
         $this->info("Generating CRUD for model: $modelName");
 
-        $migrationGenerator = new ModelGenerator($this);
-        $this->generate($modelName, $columns);
+        $modelGenerator = new ModelGenerator($this);
+        $modelGenerator->generate($modelName, $columns);
 
         $migrationGenerator = new MigrationGenerator($this);
         $migrationGenerator->generate($modelName);
