@@ -3,6 +3,7 @@ namespace Harry\CrudPackage\Console;
 
 use Harry\CrudPackage\Console\Commands\ControllerGenerator;
 use Harry\CrudPackage\Console\Commands\MigrationGenerator;
+use Harry\CrudPackage\Console\Commands\ModelGenerator;
 use Harry\CrudPackage\Console\Commands\RouteGenerator;
 use Illuminate\Console\Command;
 
@@ -14,7 +15,11 @@ class CrudCommand extends Command
     public function handle()
     {
         $modelName = $this->argument('model');
+        $columns = $this->option('columns');
         $this->info("Generating CRUD for model: $modelName");
+
+        $migrationGenerator = new ModelGenerator($this);
+        $this->generate($modelName, $columns);
 
         $migrationGenerator = new MigrationGenerator($this);
         $migrationGenerator->generate($modelName);
