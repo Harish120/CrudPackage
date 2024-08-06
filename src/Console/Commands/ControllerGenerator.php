@@ -1,7 +1,7 @@
 <?php
 namespace Harry\CrudPackage\Commands;
 
-use harry\CrudPackage\Helpers\FileHelper;
+use Harry\CrudPackage\Helpers\FileHelper;
 
 class ControllerGenerator
 {

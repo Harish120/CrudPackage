@@ -1,6 +1,6 @@
 <?php
 
-namespace harry\CrudPackage\Helpers;
+namespace Harry\CrudPackage\Helpers;
 
 use Illuminate\Support\Facades\File;
 
