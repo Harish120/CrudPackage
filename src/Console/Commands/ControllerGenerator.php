@@ -1,8 +1,7 @@
 <?php
-namespace harry\CrudPackage\Commands;
+namespace Harry\CrudPackage\Commands;
 
 use harry\CrudPackage\Helpers\FileHelper;
-use Illuminate\Support\Facades\File;
 
 class ControllerGenerator
 {

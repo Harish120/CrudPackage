@@ -1,8 +1,8 @@
 <?php
 
-namespace harry\CrudPackage\Commands;
+namespace Harry\CrudPackage\Commands;
 
-use harry\CrudPackage\Helpers\FileHelper;
+use Harry\CrudPackage\Helpers\FileHelper;
 use Illuminate\Support\Str;
 
 class MigrationGenerator

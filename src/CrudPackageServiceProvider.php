@@ -1,7 +1,8 @@
 <?php
 
-namespace Harish\CrudPackage;
+namespace Harry\CrudPackage;
 
+use Harry\CrudPackage\Console\CrudCommand;
 use Illuminate\Support\ServiceProvider;
 
 class CrudPackageServiceProvider extends ServiceProvider
@@ -15,7 +16,7 @@ class CrudPackageServiceProvider extends ServiceProvider
     {
         // Register the package's command
         $this->commands([
-            \Harish\CrudPackage\Console\CrudCommand::class,
+            CrudCommand::class,
         ]);
     }
 

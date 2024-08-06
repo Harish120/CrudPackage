@@ -1,5 +1,5 @@
 <?php
-namespace CrudPackage\Console;
+namespace Harry\CrudPackage\Console;
 
 use harry\CrudPackage\Commands\ControllerGenerator;
 use harry\CrudPackage\Commands\MigrationGenerator;
