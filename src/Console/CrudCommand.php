@@ -1,9 +1,9 @@
 <?php
 namespace Harry\CrudPackage\Console;
 
-use Harry\CrudPackage\Commands\ControllerGenerator;
-use Harry\CrudPackage\Commands\MigrationGenerator;
-use Harry\CrudPackage\Commands\RouteGenerator;
+use Harry\CrudPackage\Commands\Console\ControllerGenerator;
+use Harry\CrudPackage\Commands\Console\MigrationGenerator;
+use Harry\CrudPackage\Commands\Console\RouteGenerator;
 use Illuminate\Console\Command;
 
 class CrudCommand extends Command
