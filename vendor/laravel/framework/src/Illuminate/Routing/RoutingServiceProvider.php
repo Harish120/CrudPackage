@@ -6,7 +6,6 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Routing\ResponseFactory as ResponseFactoryContract;
 use Illuminate\Contracts\Routing\UrlGenerator as UrlGeneratorContract;
 use Illuminate\Contracts\View\Factory as ViewFactoryContract;
-use Illuminate\Routing\Contracts\CallableDispatcher as CallableDispatcherContract;
 use Illuminate\Routing\Contracts\ControllerDispatcher as ControllerDispatcherContract;
 use Illuminate\Support\ServiceProvider;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -30,7 +29,6 @@ class RoutingServiceProvider extends ServiceProvider
         $this->registerPsrRequest();
         $this->registerPsrResponse();
         $this->registerResponseFactory();
-        $this->registerCallableDispatcher();
         $this->registerControllerDispatcher();
     }
 
@@ -137,16 +135,8 @@ class RoutingServiceProvider extends ServiceProvider
             if (class_exists(Psr17Factory::class) && class_exists(PsrHttpFactory::class)) {
                 $psr17Factory = new Psr17Factory;
 
-                return with((new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory))
-                    ->createRequest($illuminateRequest = $app->make('request')), function (ServerRequestInterface $request) use ($illuminateRequest) {
-                        if ($illuminateRequest->getContentTypeFormat() !== 'json' && $illuminateRequest->request->count() === 0) {
-                            return $request;
-                        }
-
-                        return $request->withParsedBody(
-                            array_merge($request->getParsedBody() ?? [], $illuminateRequest->getPayload()->all())
-                        );
-                    });
+                return (new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory))
+                    ->createRequest($app->make('request'));
             }
 
             throw new BindingResolutionException('Unable to resolve PSR request. Please install the symfony/psr-http-message-bridge and nyholm/psr7 packages.');
@@ -180,18 +170,6 @@ class RoutingServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ResponseFactoryContract::class, function ($app) {
             return new ResponseFactory($app[ViewFactoryContract::class], $app['redirect']);
-        });
-    }
-
-    /**
-     * Register the callable dispatcher.
-     *
-     * @return void
-     */
-    protected function registerCallableDispatcher()
-    {
-        $this->app->singleton(CallableDispatcherContract::class, function ($app) {
-            return new CallableDispatcher($app);
         });
     }
 

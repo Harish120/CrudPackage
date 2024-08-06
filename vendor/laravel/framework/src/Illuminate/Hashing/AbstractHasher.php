@@ -19,13 +19,13 @@ abstract class AbstractHasher
      * Check the given plain value against a hash.
      *
      * @param  string  $value
-     * @param  string|null  $hashedValue
+     * @param  string  $hashedValue
      * @param  array  $options
      * @return bool
      */
     public function check($value, $hashedValue, array $options = [])
     {
-        if (is_null($hashedValue) || strlen($hashedValue) === 0) {
+        if (strlen($hashedValue) === 0) {
             return false;
         }
 

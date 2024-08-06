@@ -2,9 +2,7 @@
 
 namespace Illuminate\Console\Scheduling;
 
-use Illuminate\Cache\DynamoDbStore;
 use Illuminate\Contracts\Cache\Factory as Cache;
-use Illuminate\Contracts\Cache\LockProvider;
 
 class CacheEventMutex implements EventMutex, CacheAware
 {
@@ -41,12 +39,6 @@ class CacheEventMutex implements EventMutex, CacheAware
      */
     public function create(Event $event)
     {
-        if ($this->shouldUseLocks($this->cache->store($this->store)->getStore())) {
-            return $this->cache->store($this->store)->getStore()
-                ->lock($event->mutexName(), $event->expiresAt * 60)
-                ->acquire();
-        }
-
         return $this->cache->store($this->store)->add(
             $event->mutexName(), true, $event->expiresAt * 60
         );
@@ -60,12 +52,6 @@ class CacheEventMutex implements EventMutex, CacheAware
      */
     public function exists(Event $event)
     {
-        if ($this->shouldUseLocks($this->cache->store($this->store)->getStore())) {
-            return ! $this->cache->store($this->store)->getStore()
-                ->lock($event->mutexName(), $event->expiresAt * 60)
-                ->get(fn () => true);
-        }
-
         return $this->cache->store($this->store)->has($event->mutexName());
     }
 
@@ -77,26 +63,7 @@ class CacheEventMutex implements EventMutex, CacheAware
      */
     public function forget(Event $event)
     {
-        if ($this->shouldUseLocks($this->cache->store($this->store)->getStore())) {
-            $this->cache->store($this->store)->getStore()
-                ->lock($event->mutexName(), $event->expiresAt * 60)
-                ->forceRelease();
-
-            return;
-        }
-
         $this->cache->store($this->store)->forget($event->mutexName());
-    }
-
-    /**
-     * Determine if the given store should use locks for cache event mutexes.
-     *
-     * @param  \Illuminate\Contracts\Cache\Store  $store
-     * @return bool
-     */
-    protected function shouldUseLocks($store)
-    {
-        return $store instanceof LockProvider && ! $store instanceof DynamoDbStore;
     }
 
     /**

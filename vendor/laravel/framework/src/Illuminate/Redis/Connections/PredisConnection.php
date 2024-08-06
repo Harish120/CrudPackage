@@ -4,7 +4,6 @@ namespace Illuminate\Redis\Connections;
 
 use Closure;
 use Illuminate\Contracts\Redis\Connection as ConnectionContract;
-use Predis\Command\Argument\ArrayableArgument;
 
 /**
  * @mixin \Predis\Client
@@ -45,26 +44,10 @@ class PredisConnection extends Connection implements ConnectionContract
 
         foreach ($loop as $message) {
             if ($message->kind === 'message' || $message->kind === 'pmessage') {
-                $callback($message->payload, $message->channel);
+                call_user_func($callback, $message->payload, $message->channel);
             }
         }
 
         unset($loop);
-    }
-
-    /**
-     * Parse the command's parameters for event dispatching.
-     *
-     * @param  array  $parameters
-     * @return array
-     */
-    protected function parseParametersForEvent(array $parameters)
-    {
-        return collect($parameters)
-            ->transform(function ($parameter) {
-                return $parameter instanceof ArrayableArgument
-                    ? $parameter->toArray()
-                    : $parameter;
-            })->all();
     }
 }

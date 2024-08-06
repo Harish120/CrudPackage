@@ -2,13 +2,11 @@
 
 namespace Illuminate\Console;
 
-use Illuminate\Console\Contracts\NewLineAware;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class OutputStyle extends SymfonyStyle implements NewLineAware
+class OutputStyle extends SymfonyStyle
 {
     /**
      * The output instance.
@@ -16,24 +14,6 @@ class OutputStyle extends SymfonyStyle implements NewLineAware
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
     private $output;
-
-    /**
-     * The number of trailing new lines written by the last output.
-     *
-     * This is initialized as 1 to account for the new line written by the shell after executing a command.
-     *
-     * @var int
-     */
-    protected $newLinesWritten = 1;
-
-    /**
-     * If the last output written wrote a new line.
-     *
-     * @var bool
-     *
-     * @deprecated use $newLinesWritten
-     */
-    protected $newLineWritten = false;
 
     /**
      * Create a new Console OutputStyle instance.
@@ -50,107 +30,11 @@ class OutputStyle extends SymfonyStyle implements NewLineAware
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function askQuestion(Question $question): mixed
-    {
-        try {
-            return parent::askQuestion($question);
-        } finally {
-            $this->newLinesWritten++;
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function write(string|iterable $messages, bool $newline = false, int $options = 0)
-    {
-        $this->newLinesWritten = $this->trailingNewLineCount($messages) + (int) $newline;
-        $this->newLineWritten = $this->newLinesWritten > 0;
-
-        parent::write($messages, $newline, $options);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return void
-     */
-    public function writeln(string|iterable $messages, int $type = self::OUTPUT_NORMAL)
-    {
-        $this->newLinesWritten = $this->trailingNewLineCount($messages) + 1;
-        $this->newLineWritten = true;
-
-        parent::writeln($messages, $type);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return void
-     */
-    public function newLine(int $count = 1)
-    {
-        $this->newLinesWritten += $count;
-        $this->newLineWritten = $this->newLinesWritten > 0;
-
-        parent::newLine($count);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function newLinesWritten()
-    {
-        if ($this->output instanceof static) {
-            return $this->output->newLinesWritten();
-        }
-
-        return $this->newLinesWritten;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @deprecated use newLinesWritten
-     */
-    public function newLineWritten()
-    {
-        if ($this->output instanceof static && $this->output->newLineWritten()) {
-            return true;
-        }
-
-        return $this->newLineWritten;
-    }
-
-    /*
-     * Count the number of trailing new lines in a string.
-     *
-     * @param  string|iterable  $messages
-     * @return int
-     */
-    protected function trailingNewLineCount($messages)
-    {
-        if (is_iterable($messages)) {
-            $string = '';
-
-            foreach ($messages as $message) {
-                $string .= $message.PHP_EOL;
-            }
-        } else {
-            $string = $messages;
-        }
-
-        return strlen($string) - strlen(rtrim($string, PHP_EOL));
-    }
-
-    /**
      * Returns whether verbosity is quiet (-q).
      *
      * @return bool
      */
-    public function isQuiet(): bool
+    public function isQuiet()
     {
         return $this->output->isQuiet();
     }
@@ -160,7 +44,7 @@ class OutputStyle extends SymfonyStyle implements NewLineAware
      *
      * @return bool
      */
-    public function isVerbose(): bool
+    public function isVerbose()
     {
         return $this->output->isVerbose();
     }
@@ -170,7 +54,7 @@ class OutputStyle extends SymfonyStyle implements NewLineAware
      *
      * @return bool
      */
-    public function isVeryVerbose(): bool
+    public function isVeryVerbose()
     {
         return $this->output->isVeryVerbose();
     }
@@ -180,7 +64,7 @@ class OutputStyle extends SymfonyStyle implements NewLineAware
      *
      * @return bool
      */
-    public function isDebug(): bool
+    public function isDebug()
     {
         return $this->output->isDebug();
     }

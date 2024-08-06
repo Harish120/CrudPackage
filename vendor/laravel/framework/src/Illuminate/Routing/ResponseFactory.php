@@ -6,13 +6,10 @@ use Illuminate\Contracts\Routing\ResponseFactory as FactoryContract;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Exceptions\StreamedResponseException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\StreamedJsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Throwable;
 
 class ResponseFactory implements FactoryContract
 {
@@ -120,7 +117,7 @@ class ResponseFactory implements FactoryContract
     /**
      * Create a new streamed response instance.
      *
-     * @param  callable  $callback
+     * @param  \Closure  $callback
      * @param  int  $status
      * @param  array  $headers
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
@@ -131,23 +128,9 @@ class ResponseFactory implements FactoryContract
     }
 
     /**
-     * Create a new streamed response instance.
-     *
-     * @param  array  $data
-     * @param  int  $status
-     * @param  array  $headers
-     * @param  int  $encodingOptions
-     * @return \Symfony\Component\HttpFoundation\StreamedJsonResponse
-     */
-    public function streamJson($data, $status = 200, $headers = [], $encodingOptions = JsonResponse::DEFAULT_ENCODING_OPTIONS)
-    {
-        return new StreamedJsonResponse($data, $status, $headers, $encodingOptions);
-    }
-
-    /**
      * Create a new streamed response instance as a file download.
      *
-     * @param  callable  $callback
+     * @param  \Closure  $callback
      * @param  string|null  $name
      * @param  array  $headers
      * @param  string|null  $disposition
@@ -155,15 +138,7 @@ class ResponseFactory implements FactoryContract
      */
     public function streamDownload($callback, $name = null, array $headers = [], $disposition = 'attachment')
     {
-        $withWrappedException = function () use ($callback) {
-            try {
-                $callback();
-            } catch (Throwable $e) {
-                throw new StreamedResponseException($e);
-            }
-        };
-
-        $response = new StreamedResponse($withWrappedException, 200, $headers);
+        $response = new StreamedResponse($callback, 200, $headers);
 
         if (! is_null($name)) {
             $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
@@ -250,7 +225,7 @@ class ResponseFactory implements FactoryContract
     /**
      * Create a new redirect response to a controller action.
      *
-     * @param  array|string  $action
+     * @param  string  $action
      * @param  mixed  $parameters
      * @param  int  $status
      * @param  array  $headers

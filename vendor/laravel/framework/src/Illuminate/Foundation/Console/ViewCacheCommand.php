@@ -4,12 +4,9 @@ namespace Illuminate\Foundation\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
-#[AsCommand(name: 'view:cache')]
 class ViewCacheCommand extends Command
 {
     /**
@@ -33,19 +30,13 @@ class ViewCacheCommand extends Command
      */
     public function handle()
     {
-        $this->callSilent('view:clear');
+        $this->call('view:clear');
 
         $this->paths()->each(function ($path) {
-            $prefix = $this->output->isVeryVerbose() ? '<fg=yellow;options=bold>DIR</> ' : '';
-
-            $this->components->task($prefix.$path, null, OutputInterface::VERBOSITY_VERBOSE);
-
             $this->compileViews($this->bladeFilesIn([$path]));
         });
 
-        $this->newLine();
-
-        $this->components->info('Blade templates cached successfully.');
+        $this->info('Blade templates cached successfully!');
     }
 
     /**
@@ -59,14 +50,8 @@ class ViewCacheCommand extends Command
         $compiler = $this->laravel['view']->getEngineResolver()->resolve('blade')->getCompiler();
 
         $views->map(function (SplFileInfo $file) use ($compiler) {
-            $this->components->task('    '.$file->getRelativePathname(), null, OutputInterface::VERBOSITY_VERY_VERBOSE);
-
             $compiler->compile($file->getRealPath());
         });
-
-        if ($this->output->isVeryVerbose()) {
-            $this->newLine();
-        }
     }
 
     /**
@@ -77,17 +62,11 @@ class ViewCacheCommand extends Command
      */
     protected function bladeFilesIn(array $paths)
     {
-        $extensions = collect($this->laravel['view']->getExtensions())
-            ->filter(fn ($value) => $value === 'blade')
-            ->keys()
-            ->map(fn ($extension) => "*.{$extension}")
-            ->all();
-
         return collect(
             Finder::create()
                 ->in($paths)
                 ->exclude('vendor')
-                ->name($extensions)
+                ->name('*.blade.php')
                 ->files()
         );
     }

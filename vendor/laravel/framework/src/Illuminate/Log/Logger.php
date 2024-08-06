@@ -7,14 +7,11 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Log\Events\MessageLogged;
-use Illuminate\Support\Traits\Conditionable;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class Logger implements LoggerInterface
 {
-    use Conditionable;
-
     /**
      * The underlying logger implementation.
      *
@@ -52,11 +49,11 @@ class Logger implements LoggerInterface
     /**
      * Log an emergency message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function emergency($message, array $context = []): void
+    public function emergency($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -64,11 +61,11 @@ class Logger implements LoggerInterface
     /**
      * Log an alert message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function alert($message, array $context = []): void
+    public function alert($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -76,11 +73,11 @@ class Logger implements LoggerInterface
     /**
      * Log a critical message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function critical($message, array $context = []): void
+    public function critical($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -88,11 +85,11 @@ class Logger implements LoggerInterface
     /**
      * Log an error message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function error($message, array $context = []): void
+    public function error($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -100,11 +97,11 @@ class Logger implements LoggerInterface
     /**
      * Log a warning message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function warning($message, array $context = []): void
+    public function warning($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -112,11 +109,11 @@ class Logger implements LoggerInterface
     /**
      * Log a notice to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function notice($message, array $context = []): void
+    public function notice($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -124,11 +121,11 @@ class Logger implements LoggerInterface
     /**
      * Log an informational message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function info($message, array $context = []): void
+    public function info($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -136,11 +133,11 @@ class Logger implements LoggerInterface
     /**
      * Log a debug message to the logs.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function debug($message, array $context = []): void
+    public function debug($message, array $context = [])
     {
         $this->writeLog(__FUNCTION__, $message, $context);
     }
@@ -149,11 +146,11 @@ class Logger implements LoggerInterface
      * Log a message to the logs.
      *
      * @param  string  $level
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function log($level, $message, array $context = []): void
+    public function log($level, $message, array $context = [])
     {
         $this->writeLog($level, $message, $context);
     }
@@ -162,11 +159,11 @@ class Logger implements LoggerInterface
      * Dynamically pass log calls into the writer.
      *
      * @param  string  $level
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    public function write($level, $message, array $context = []): void
+    public function write($level, $message, array $context = [])
     {
         $this->writeLog($level, $message, $context);
     }
@@ -175,11 +172,11 @@ class Logger implements LoggerInterface
      * Write a message to the log.
      *
      * @param  string  $level
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
+     * @param  string  $message
      * @param  array  $context
      * @return void
      */
-    protected function writeLog($level, $message, $context): void
+    protected function writeLog($level, $message, $context)
     {
         $this->logger->{$level}(
             $message = $this->formatMessage($message),
@@ -252,8 +249,8 @@ class Logger implements LoggerInterface
     /**
      * Format the parameters for the logger.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Jsonable|\Illuminate\Support\Stringable|array|string  $message
-     * @return string
+     * @param  mixed  $message
+     * @return mixed
      */
     protected function formatMessage($message)
     {
@@ -265,7 +262,7 @@ class Logger implements LoggerInterface
             return var_export($message->toArray(), true);
         }
 
-        return (string) $message;
+        return $message;
     }
 
     /**

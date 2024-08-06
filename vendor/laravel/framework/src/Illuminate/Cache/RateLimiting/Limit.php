@@ -7,7 +7,7 @@ class Limit
     /**
      * The rate limit signature key.
      *
-     * @var mixed
+     * @var mixed|string
      */
     public $key;
 
@@ -35,7 +35,7 @@ class Limit
     /**
      * Create a new limit instance.
      *
-     * @param  mixed  $key
+     * @param  mixed|string  $key
      * @param  int  $maxAttempts
      * @param  int  $decayMinutes
      * @return void
@@ -107,7 +107,7 @@ class Limit
     /**
      * Set the key of the rate limit.
      *
-     * @param  mixed  $key
+     * @param  string  $key
      * @return $this
      */
     public function by($key)

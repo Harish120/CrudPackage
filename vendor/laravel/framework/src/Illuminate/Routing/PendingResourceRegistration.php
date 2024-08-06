@@ -64,7 +64,7 @@ class PendingResourceRegistration
     /**
      * Set the methods the controller should apply to.
      *
-     * @param  array|string|mixed  $methods
+     * @param  array|string|dynamic  $methods
      * @return \Illuminate\Routing\PendingResourceRegistration
      */
     public function only($methods)
@@ -77,7 +77,7 @@ class PendingResourceRegistration
     /**
      * Set the methods the controller should exclude.
      *
-     * @param  array|string|mixed  $methods
+     * @param  array|string|dynamic  $methods
      * @return \Illuminate\Routing\PendingResourceRegistration
      */
     public function except($methods)
@@ -223,19 +223,6 @@ class PendingResourceRegistration
     public function scoped(array $fields = [])
     {
         $this->options['bindingFields'] = $fields;
-
-        return $this;
-    }
-
-    /**
-     * Define which routes should allow "trashed" models to be retrieved when resolving implicit model bindings.
-     *
-     * @param  array  $methods
-     * @return \Illuminate\Routing\PendingResourceRegistration
-     */
-    public function withTrashed(array $methods = [])
-    {
-        $this->options['trashed'] = $methods;
 
         return $this;
     }

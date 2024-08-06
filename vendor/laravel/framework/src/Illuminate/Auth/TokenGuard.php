@@ -92,7 +92,7 @@ class TokenGuard implements Guard
     /**
      * Get the token for the current request.
      *
-     * @return string|null
+     * @return string
      */
     public function getTokenForRequest()
     {

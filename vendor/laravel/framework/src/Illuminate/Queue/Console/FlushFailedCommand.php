@@ -3,9 +3,7 @@
 namespace Illuminate\Queue\Console;
 
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Attribute\AsCommand;
 
-#[AsCommand(name: 'queue:flush')]
 class FlushFailedCommand extends Command
 {
     /**
@@ -13,7 +11,7 @@ class FlushFailedCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue:flush {--hours= : The number of hours to retain failed job data}';
+    protected $name = 'queue:flush';
 
     /**
      * The console command description.
@@ -29,14 +27,8 @@ class FlushFailedCommand extends Command
      */
     public function handle()
     {
-        $this->laravel['queue.failer']->flush($this->option('hours'));
+        $this->laravel['queue.failer']->flush();
 
-        if ($this->option('hours')) {
-            $this->components->info("All jobs that failed more than {$this->option('hours')} hours ago have been deleted successfully.");
-
-            return;
-        }
-
-        $this->components->info('All failed jobs deleted successfully.');
+        $this->info('All failed jobs deleted successfully!');
     }
 }

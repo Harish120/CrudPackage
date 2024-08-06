@@ -22,11 +22,11 @@ use Symfony\Component\Process\Process;
  */
 class UnixPipes extends AbstractPipes
 {
-    private ?bool $ttyMode;
-    private bool $ptyMode;
-    private bool $haveReadSupport;
+    private $ttyMode;
+    private $ptyMode;
+    private $haveReadSupport;
 
-    public function __construct(?bool $ttyMode, bool $ptyMode, mixed $input, bool $haveReadSupport)
+    public function __construct(?bool $ttyMode, bool $ptyMode, $input, bool $haveReadSupport)
     {
         $this->ttyMode = $ttyMode;
         $this->ptyMode = $ptyMode;
@@ -40,7 +40,7 @@ class UnixPipes extends AbstractPipes
         throw new \BadMethodCallException('Cannot serialize '.__CLASS__);
     }
 
-    public function __wakeup(): void
+    public function __wakeup()
     {
         throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
     }
@@ -50,6 +50,9 @@ class UnixPipes extends AbstractPipes
         $this->close();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getDescriptors(): array
     {
         if (!$this->haveReadSupport) {
@@ -85,11 +88,17 @@ class UnixPipes extends AbstractPipes
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getFiles(): array
     {
         return [];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function readAndWrite(bool $blocking, bool $close = false): array
     {
         $this->unblock();
@@ -100,7 +109,7 @@ class UnixPipes extends AbstractPipes
         unset($r[0]);
 
         // let's have a look if something changed in streams
-        set_error_handler($this->handleError(...));
+        set_error_handler([$this, 'handleError']);
         if (($r || $w) && false === stream_select($r, $w, $e, 0, $blocking ? Process::TIMEOUT_PRECISION * 1E6 : 0)) {
             restore_error_handler();
             // if a system call has been interrupted, forget about it, let's try again
@@ -136,11 +145,17 @@ class UnixPipes extends AbstractPipes
         return $read;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function haveReadSupport(): bool
     {
         return $this->haveReadSupport;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function areOpen(): bool
     {
         return (bool) $this->pipes;

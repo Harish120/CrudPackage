@@ -13,7 +13,6 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\RouteCollection as SymfonyRouteCollection;
-use Traversable;
 
 abstract class AbstractRouteCollection implements Countable, IteratorAggregate, RouteCollectionInterface
 {
@@ -41,10 +40,7 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
             return $this->getRouteForMethods($request, $others);
         }
 
-        throw new NotFoundHttpException(sprintf(
-            'The route %s could not be found.',
-            $request->path()
-        ));
+        throw new NotFoundHttpException;
     }
 
     /**
@@ -82,9 +78,9 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
             return $route->isFallback;
         });
 
-        return $routes->merge($fallbacks)->first(
-            fn (Route $route) => $route->matches($request, $includingMethod)
-        );
+        return $routes->merge($fallbacks)->first(function (Route $route) use ($request, $includingMethod) {
+            return $route->matches($request, $includingMethod);
+        });
     }
 
     /**
@@ -98,36 +94,13 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
      */
     protected function getRouteForMethods($request, array $methods)
     {
-        if ($request->isMethod('OPTIONS')) {
+        if ($request->method() === 'OPTIONS') {
             return (new Route('OPTIONS', $request->path(), function () use ($methods) {
                 return new Response('', 200, ['Allow' => implode(',', $methods)]);
             }))->bind($request);
         }
 
-        $this->requestMethodNotAllowed($request, $methods, $request->method());
-    }
-
-    /**
-     * Throw a method not allowed HTTP exception.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  array  $others
-     * @param  string  $method
-     * @return void
-     *
-     * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
-     */
-    protected function requestMethodNotAllowed($request, array $others, $method)
-    {
-        throw new MethodNotAllowedHttpException(
-            $others,
-            sprintf(
-                'The %s method is not supported for route %s. Supported methods: %s.',
-                $method,
-                $request->path(),
-                implode(', ', $others)
-            )
-        );
+        $this->methodNotAllowed($methods, $request->method());
     }
 
     /**
@@ -136,8 +109,6 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
      * @param  array  $others
      * @param  string  $method
      * @return void
-     *
-     * @deprecated use requestMethodNotAllowed
      *
      * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
      */
@@ -233,14 +204,14 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
 
         if (
             ! is_null($name)
-            && str_ends_with($name, '.')
+            && Str::endsWith($name, '.')
             && ! is_null($symfonyRoutes->get($name))
         ) {
             $name = null;
         }
 
         if (! $name) {
-            $route->name($this->generateRouteName());
+            $route->name($name = $this->generateRouteName());
 
             $this->add($route);
         } elseif (! is_null($symfonyRoutes->get($name))) {
@@ -267,7 +238,8 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
      *
      * @return \ArrayIterator
      */
-    public function getIterator(): Traversable
+    #[\ReturnTypeWillChange]
+    public function getIterator()
     {
         return new ArrayIterator($this->getRoutes());
     }
@@ -277,7 +249,8 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
      *
      * @return int
      */
-    public function count(): int
+    #[\ReturnTypeWillChange]
+    public function count()
     {
         return count($this->getRoutes());
     }

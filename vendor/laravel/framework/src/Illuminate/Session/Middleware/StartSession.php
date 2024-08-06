@@ -80,7 +80,7 @@ class StartSession
 
         $lockFor = $request->route() && $request->route()->locksFor()
                         ? $request->route()->locksFor()
-                        : $this->manager->defaultRouteBlockLockSeconds();
+                        : 10;
 
         $lock = $this->cache($this->manager->blockDriver())
                     ->lock('session:'.$session->getId(), $lockFor)
@@ -90,12 +90,12 @@ class StartSession
             $lock->block(
                 ! is_null($request->route()->waitsFor())
                         ? $request->route()->waitsFor()
-                        : $this->manager->defaultRouteBlockWaitSeconds()
+                        : 10
             );
 
             return $this->handleStatefulRequest($request, $session, $next);
         } finally {
-            $lock?->release();
+            optional($lock)->release();
         }
     }
 
@@ -199,11 +199,10 @@ class StartSession
      */
     protected function storeCurrentUrl(Request $request, $session)
     {
-        if ($request->isMethod('GET') &&
+        if ($request->method() === 'GET' &&
             $request->route() instanceof Route &&
             ! $request->ajax() &&
-            ! $request->prefetch() &&
-            ! $request->isPrecognitive()) {
+            ! $request->prefetch()) {
             $session->setPreviousUrl($request->fullUrl());
         }
     }
@@ -219,16 +218,9 @@ class StartSession
     {
         if ($this->sessionIsPersistent($config = $this->manager->getSessionConfig())) {
             $response->headers->setCookie(new Cookie(
-                $session->getName(),
-                $session->getId(),
-                $this->getCookieExpirationDate(),
-                $config['path'],
-                $config['domain'],
-                $config['secure'] ?? false,
-                $config['http_only'] ?? true,
-                false,
-                $config['same_site'] ?? null,
-                $config['partitioned'] ?? false
+                $session->getName(), $session->getId(), $this->getCookieExpirationDate(),
+                $config['path'], $config['domain'], $config['secure'] ?? false,
+                $config['http_only'] ?? true, false, $config['same_site'] ?? null
             ));
         }
     }
@@ -241,9 +233,7 @@ class StartSession
      */
     protected function saveSession($request)
     {
-        if (! $request->isPrecognitive()) {
-            $this->manager->driver()->save();
-        }
+        $this->manager->driver()->save();
     }
 
     /**

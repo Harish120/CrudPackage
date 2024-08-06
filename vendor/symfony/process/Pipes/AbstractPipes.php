@@ -20,27 +20,31 @@ use Symfony\Component\Process\Exception\InvalidArgumentException;
  */
 abstract class AbstractPipes implements PipesInterface
 {
-    public array $pipes = [];
+    public $pipes = [];
 
-    private string $inputBuffer = '';
-    /** @var resource|string|\Iterator */
+    private $inputBuffer = '';
     private $input;
-    private bool $blocked = true;
-    private ?string $lastError = null;
+    private $blocked = true;
+    private $lastError;
 
     /**
-     * @param resource|string|\Iterator $input
+     * @param resource|string|int|float|bool|\Iterator|null $input
      */
     public function __construct($input)
     {
         if (\is_resource($input) || $input instanceof \Iterator) {
             $this->input = $input;
+        } elseif (\is_string($input)) {
+            $this->inputBuffer = $input;
         } else {
             $this->inputBuffer = (string) $input;
         }
     }
 
-    public function close(): void
+    /**
+     * {@inheritdoc}
+     */
+    public function close()
     {
         foreach ($this->pipes as $pipe) {
             if (\is_resource($pipe)) {
@@ -65,7 +69,7 @@ abstract class AbstractPipes implements PipesInterface
     /**
      * Unblocks streams.
      */
-    protected function unblock(): void
+    protected function unblock()
     {
         if (!$this->blocked) {
             return;
@@ -169,7 +173,7 @@ abstract class AbstractPipes implements PipesInterface
     /**
      * @internal
      */
-    public function handleError(int $type, string $msg): void
+    public function handleError(int $type, string $msg)
     {
         $this->lastError = $msg;
     }

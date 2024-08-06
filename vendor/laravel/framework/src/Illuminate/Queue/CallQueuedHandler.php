@@ -4,7 +4,6 @@ namespace Illuminate\Queue;
 
 use Exception;
 use Illuminate\Bus\Batchable;
-use Illuminate\Bus\UniqueLock;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Container\Container;
@@ -14,6 +13,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pipeline\Pipeline;
+use Illuminate\Support\Str;
 use ReflectionClass;
 use RuntimeException;
 
@@ -93,7 +93,7 @@ class CallQueuedHandler
      */
     protected function getCommand(array $data)
     {
-        if (str_starts_with($data['command'], 'O:')) {
+        if (Str::startsWith($data['command'], 'O:')) {
             return unserialize($data['command']);
         }
 
@@ -113,10 +113,6 @@ class CallQueuedHandler
      */
     protected function dispatchThroughMiddleware(Job $job, $command)
     {
-        if ($command instanceof \__PHP_Incomplete_Class) {
-            throw new Exception('Job is incomplete class: '.json_encode($command));
-        }
-
         return (new Pipeline($this->container))->send($command)
                 ->through(array_merge(method_exists($command, 'middleware') ? $command->middleware() : [], $command->middleware ?? []))
                 ->then(function ($command) use ($job) {
@@ -184,13 +180,12 @@ class CallQueuedHandler
         $uses = class_uses_recursive($command);
 
         if (! in_array(Batchable::class, $uses) ||
-            ! in_array(InteractsWithQueue::class, $uses)) {
+            ! in_array(InteractsWithQueue::class, $uses) ||
+            is_null($command->batch())) {
             return;
         }
 
-        if ($batch = $command->batch()) {
-            $batch->recordSuccessfulJob($command->job->uuid());
-        }
+        $command->batch()->recordSuccessfulJob($command->job->uuid());
     }
 
     /**
@@ -201,9 +196,21 @@ class CallQueuedHandler
      */
     protected function ensureUniqueJobLockIsReleased($command)
     {
-        if ($command instanceof ShouldBeUnique) {
-            (new UniqueLock($this->container->make(Cache::class)))->release($command);
+        if (! $command instanceof ShouldBeUnique) {
+            return;
         }
+
+        $uniqueId = method_exists($command, 'uniqueId')
+                    ? $command->uniqueId()
+                    : ($command->uniqueId ?? '');
+
+        $cache = method_exists($command, 'uniqueVia')
+                    ? $command->uniqueVia()
+                    : $this->container->make(Cache::class);
+
+        $cache->lock(
+            'laravel_unique_job:'.get_class($command).$uniqueId
+        )->forceRelease();
     }
 
     /**
@@ -220,7 +227,7 @@ class CallQueuedHandler
         try {
             $shouldDelete = (new ReflectionClass($class))
                     ->getDefaultProperties()['deleteWhenMissingModels'] ?? false;
-        } catch (Exception) {
+        } catch (Exception $e) {
             $shouldDelete = false;
         }
 
@@ -249,10 +256,6 @@ class CallQueuedHandler
             $this->ensureUniqueJobLockIsReleased($command);
         }
 
-        if ($command instanceof \__PHP_Incomplete_Class) {
-            return;
-        }
-
         $this->ensureFailedBatchJobIsRecorded($uuid, $command, $e);
         $this->ensureChainCatchCallbacksAreInvoked($uuid, $command, $e);
 
@@ -271,13 +274,12 @@ class CallQueuedHandler
      */
     protected function ensureFailedBatchJobIsRecorded(string $uuid, $command, $e)
     {
-        if (! in_array(Batchable::class, class_uses_recursive($command))) {
+        if (! in_array(Batchable::class, class_uses_recursive($command)) ||
+            is_null($command->batch())) {
             return;
         }
 
-        if ($batch = $command->batch()) {
-            $batch->recordFailedJob($uuid, $e);
-        }
+        $command->batch()->recordFailedJob($uuid, $e);
     }
 
     /**

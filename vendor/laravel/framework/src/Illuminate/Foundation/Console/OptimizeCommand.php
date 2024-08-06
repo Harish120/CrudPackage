@@ -3,9 +3,7 @@
 namespace Illuminate\Foundation\Console;
 
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Attribute\AsCommand;
 
-#[AsCommand(name: 'optimize')]
 class OptimizeCommand extends Command
 {
     /**
@@ -29,13 +27,9 @@ class OptimizeCommand extends Command
      */
     public function handle()
     {
-        $this->components->info('Caching the framework bootstrap files');
+        $this->call('config:cache');
+        $this->call('route:cache');
 
-        collect([
-            'config' => fn () => $this->callSilent('config:cache') == 0,
-            'routes' => fn () => $this->callSilent('route:cache') == 0,
-        ])->each(fn ($task, $description) => $this->components->task($description, $task));
-
-        $this->newLine();
+        $this->info('Files cached successfully!');
     }
 }

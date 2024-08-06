@@ -4,13 +4,16 @@ namespace {{ namespace }};
 
 use {{ namespacedModel }};
 use {{ rootNamespace }}Http\Controllers\Controller;
-use {{ namespacedParentModel }};
 use Illuminate\Http\Request;
+use {{ namespacedParentModel }};
 
 class {{ class }} extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function index({{ parentModel }} ${{ parentModelVariable }})
     {
@@ -19,6 +22,9 @@ class {{ class }} extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function create({{ parentModel }} ${{ parentModelVariable }})
     {
@@ -27,6 +33,10 @@ class {{ class }} extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request, {{ parentModel }} ${{ parentModelVariable }})
     {
@@ -35,6 +45,10 @@ class {{ class }} extends Controller
 
     /**
      * Display the specified resource.
+     *
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function show({{ parentModel }} ${{ parentModelVariable }}, {{ model }} ${{ modelVariable }})
     {
@@ -43,6 +57,10 @@ class {{ class }} extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function edit({{ parentModel }} ${{ parentModelVariable }}, {{ model }} ${{ modelVariable }})
     {
@@ -51,6 +69,11 @@ class {{ class }} extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, {{ parentModel }} ${{ parentModelVariable }}, {{ model }} ${{ modelVariable }})
     {
@@ -59,6 +82,10 @@ class {{ class }} extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  \{{ namespacedParentModel }}  ${{ parentModelVariable }}
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
      */
     public function destroy({{ parentModel }} ${{ parentModelVariable }}, {{ model }} ${{ modelVariable }})
     {

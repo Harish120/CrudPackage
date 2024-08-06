@@ -3,10 +3,8 @@
 namespace Illuminate\Foundation\Console;
 
 use Illuminate\Console\GeneratorCommand;
-use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
-#[AsCommand(name: 'make:exception')]
 class ExceptionMakeCommand extends GeneratorCommand
 {
     /**
@@ -78,8 +76,8 @@ class ExceptionMakeCommand extends GeneratorCommand
     protected function getOptions()
     {
         return [
-            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the exception already exists'],
             ['render', null, InputOption::VALUE_NONE, 'Create the exception with an empty render method'],
+
             ['report', null, InputOption::VALUE_NONE, 'Create the exception with an empty report method'],
         ];
     }

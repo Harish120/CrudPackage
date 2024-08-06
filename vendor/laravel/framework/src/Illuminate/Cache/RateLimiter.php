@@ -53,7 +53,7 @@ class RateLimiter
      * Get the given named rate limiter.
      *
      * @param  string  $name
-     * @return \Closure|null
+     * @return \Closure
      */
     public function limiter(string $name)
     {
@@ -75,11 +75,7 @@ class RateLimiter
             return false;
         }
 
-        if (is_null($result = $callback())) {
-            $result = true;
-        }
-
-        return tap($result, function () use ($key, $decaySeconds) {
+        return tap($callback() ?: true, function () use ($key, $decaySeconds) {
             $this->hit($key, $decaySeconds);
         });
     }
@@ -93,8 +89,10 @@ class RateLimiter
      */
     public function tooManyAttempts($key, $maxAttempts)
     {
+        $key = $this->cleanRateLimiterKey($key);
+
         if ($this->attempts($key) >= $maxAttempts) {
-            if ($this->cache->has($this->cleanRateLimiterKey($key).':timer')) {
+            if ($this->cache->has($key.':timer')) {
                 return true;
             }
 
@@ -105,26 +103,13 @@ class RateLimiter
     }
 
     /**
-     * Increment (by 1) the counter for a given key for a given decay time.
+     * Increment the counter for a given key for a given decay time.
      *
      * @param  string  $key
      * @param  int  $decaySeconds
      * @return int
      */
     public function hit($key, $decaySeconds = 60)
-    {
-        return $this->increment($key, $decaySeconds);
-    }
-
-    /**
-     * Increment the counter for a given key for a given decay time by a given amount.
-     *
-     * @param  string  $key
-     * @param  int  $decaySeconds
-     * @param  int  $amount
-     * @return int
-     */
-    public function increment($key, $decaySeconds = 60, $amount = 1)
     {
         $key = $this->cleanRateLimiterKey($key);
 
@@ -134,7 +119,7 @@ class RateLimiter
 
         $added = $this->cache->add($key, 0, $decaySeconds);
 
-        $hits = (int) $this->cache->increment($key, $amount);
+        $hits = (int) $this->cache->increment($key);
 
         if (! $added && $hits == 1) {
             $this->cache->put($key, 1, $decaySeconds);

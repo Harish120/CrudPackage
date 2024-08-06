@@ -2,7 +2,6 @@
 
 namespace Illuminate\Database\Eloquent\Relations\Concerns;
 
-use BackedEnum;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -93,19 +92,17 @@ trait InteractsWithPivotTable
         $current = $this->getCurrentlyAttachedPivots()
                         ->pluck($this->relatedPivotKey)->all();
 
-        $records = $this->formatRecordsList($this->parseIds($ids));
+        $detach = array_diff($current, array_keys(
+            $records = $this->formatRecordsList($this->parseIds($ids))
+        ));
 
         // Next, we will take the differences of the currents and given IDs and detach
         // all of the entities that exist in the "current" array but are not in the
         // array of the new IDs given to the method which will complete the sync.
-        if ($detaching) {
-            $detach = array_diff($current, array_keys($records));
+        if ($detaching && count($detach) > 0) {
+            $this->detach($detach);
 
-            if (count($detach) > 0) {
-                $this->detach($detach);
-
-                $changes['detached'] = $this->castKeys($detach);
-            }
+            $changes['detached'] = $this->castKeys($detach);
         }
 
         // Now we are finally ready to attach the new records. Note that we'll disable
@@ -153,10 +150,6 @@ trait InteractsWithPivotTable
         return collect($records)->mapWithKeys(function ($attributes, $id) {
             if (! is_array($attributes)) {
                 [$id, $attributes] = [$attributes, []];
-            }
-
-            if ($id instanceof BackedEnum) {
-                $id = $id->value;
             }
 
             return [$id => $attributes];
@@ -214,7 +207,7 @@ trait InteractsWithPivotTable
             return $this->updateExistingPivotUsingCustomClass($id, $attributes, $touch);
         }
 
-        if ($this->hasPivotColumn($this->updatedAt())) {
+        if (in_array($this->updatedAt(), $this->pivotColumns)) {
             $attributes = $this->addTimestampsToAttachment($attributes, true);
         }
 
@@ -401,7 +394,7 @@ trait InteractsWithPivotTable
         if ($this->using) {
             $pivotModel = new $this->using;
 
-            $fresh = $pivotModel->fromDateTime($fresh);
+            $fresh = $fresh->format($pivotModel->getDateFormat());
         }
 
         if (! $exists && $this->hasPivotColumn($this->createdAt())) {
@@ -515,8 +508,6 @@ trait InteractsWithPivotTable
      */
     public function newPivot(array $attributes = [], $exists = false)
     {
-        $attributes = array_merge(array_column($this->pivotValues, 'value', 'column'), $attributes);
-
         $pivot = $this->related->newPivot(
             $this->parent, $attributes, $this->table, $exists, $this->using
         );
@@ -678,11 +669,18 @@ trait InteractsWithPivotTable
      */
     protected function getTypeSwapValue($type, $value)
     {
-        return match (strtolower($type)) {
-            'int', 'integer' => (int) $value,
-            'real', 'float', 'double' => (float) $value,
-            'string' => (string) $value,
-            default => $value,
-        };
+        switch (strtolower($type)) {
+            case 'int':
+            case 'integer':
+                return (int) $value;
+            case 'real':
+            case 'float':
+            case 'double':
+                return (float) $value;
+            case 'string':
+                return (string) $value;
+            default:
+                return $value;
+        }
     }
 }

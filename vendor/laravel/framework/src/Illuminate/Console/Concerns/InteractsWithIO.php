@@ -16,15 +16,6 @@ use Symfony\Component\Console\Question\Question;
 trait InteractsWithIO
 {
     /**
-     * The console components factory.
-     *
-     * @var \Illuminate\Console\View\Components\Factory
-     *
-     * @internal This property is not meant to be used or overwritten outside the framework.
-     */
-    protected $components;
-
-    /**
      * The input interface implementation.
      *
      * @var \Symfony\Component\Console\Input\InputInterface
@@ -73,7 +64,7 @@ trait InteractsWithIO
      * Get the value of a command argument.
      *
      * @param  string|null  $key
-     * @return array|string|bool|null
+     * @return string|array|null
      */
     public function argument($key = null)
     {
@@ -207,7 +198,7 @@ trait InteractsWithIO
      *
      * @param  string  $question
      * @param  array  $choices
-     * @param  string|int|null  $default
+     * @param  string|null  $default
      * @param  mixed|null  $attempts
      * @param  bool  $multiple
      * @return string|array
@@ -226,7 +217,7 @@ trait InteractsWithIO
      *
      * @param  array  $headers
      * @param  \Illuminate\Contracts\Support\Arrayable|array  $rows
-     * @param  \Symfony\Component\Console\Helper\TableStyle|string  $tableStyle
+     * @param  string  $tableStyle
      * @param  array  $columnStyles
      * @return void
      */
@@ -364,31 +355,28 @@ trait InteractsWithIO
      * Write a string in an alert box.
      *
      * @param  string  $string
-     * @param  int|string|null  $verbosity
      * @return void
      */
-    public function alert($string, $verbosity = null)
+    public function alert($string)
     {
         $length = Str::length(strip_tags($string)) + 12;
 
-        $this->comment(str_repeat('*', $length), $verbosity);
-        $this->comment('*     '.$string.'     *', $verbosity);
-        $this->comment(str_repeat('*', $length), $verbosity);
+        $this->comment(str_repeat('*', $length));
+        $this->comment('*     '.$string.'     *');
+        $this->comment(str_repeat('*', $length));
 
-        $this->comment('', $verbosity);
+        $this->newLine();
     }
 
     /**
      * Write a blank line.
      *
      * @param  int  $count
-     * @return $this
+     * @return void
      */
     public function newLine($count = 1)
     {
         $this->output->newLine($count);
-
-        return $this;
     }
 
     /**
@@ -449,15 +437,5 @@ trait InteractsWithIO
     public function getOutput()
     {
         return $this->output;
-    }
-
-    /**
-     * Get the output component factory implementation.
-     *
-     * @return \Illuminate\Console\View\Components\Factory
-     */
-    public function outputComponents()
-    {
-        return $this->components;
     }
 }

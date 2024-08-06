@@ -163,7 +163,6 @@ class Dispatcher implements QueueingDispatcher
     public function chain($jobs)
     {
         $jobs = Collection::wrap($jobs);
-        $jobs = ChainedBatch::prepareNestedBatches($jobs);
 
         return new PendingChain($jobs->shift(), $jobs->toArray());
     }
@@ -264,7 +263,7 @@ class Dispatcher implements QueueingDispatcher
     public function dispatchAfterResponse($command, $handler = null)
     {
         $this->container->terminating(function () use ($command, $handler) {
-            $this->dispatchSync($command, $handler);
+            $this->dispatchNow($command, $handler);
         });
     }
 

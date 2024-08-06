@@ -3,7 +3,6 @@
 namespace Illuminate\Testing;
 
 use ArrayAccess;
-use Closure;
 use Countable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Support\Arr;
@@ -16,7 +15,7 @@ class AssertableJsonString implements ArrayAccess, Countable
     /**
      * The original encoded json.
      *
-     * @var \Illuminate\Contracts\Support\Jsonable|\JsonSerializable|array|string
+     * @var \Illuminate\Contracts\Support\Jsonable|\JsonSerializable|array
      */
     public $json;
 
@@ -113,12 +112,11 @@ class AssertableJsonString implements ArrayAccess, Countable
      */
     public function assertSimilar(array $data)
     {
-        $actual = json_encode(
-            Arr::sortRecursive((array) $this->decoded),
-            JSON_UNESCAPED_UNICODE
-        );
+        $actual = json_encode(Arr::sortRecursive(
+            (array) $this->decoded
+        ));
 
-        PHPUnit::assertEquals(json_encode(Arr::sortRecursive($data), JSON_UNESCAPED_UNICODE), $actual);
+        PHPUnit::assertEquals(json_encode(Arr::sortRecursive($data)), $actual);
 
         return $this;
     }
@@ -131,10 +129,9 @@ class AssertableJsonString implements ArrayAccess, Countable
      */
     public function assertFragment(array $data)
     {
-        $actual = json_encode(
-            Arr::sortRecursive((array) $this->decoded),
-            JSON_UNESCAPED_UNICODE
-        );
+        $actual = json_encode(Arr::sortRecursive(
+            (array) $this->decoded
+        ));
 
         foreach (Arr::sortRecursive($data) as $key => $value) {
             $expected = $this->jsonSearchStrings($key, $value);
@@ -142,7 +139,7 @@ class AssertableJsonString implements ArrayAccess, Countable
             PHPUnit::assertTrue(
                 Str::contains($actual, $expected),
                 'Unable to find JSON fragment: '.PHP_EOL.PHP_EOL.
-                '['.json_encode([$key => $value], JSON_UNESCAPED_UNICODE).']'.PHP_EOL.PHP_EOL.
+                '['.json_encode([$key => $value]).']'.PHP_EOL.PHP_EOL.
                 'within'.PHP_EOL.PHP_EOL.
                 "[{$actual}]."
             );
@@ -164,10 +161,9 @@ class AssertableJsonString implements ArrayAccess, Countable
             return $this->assertMissingExact($data);
         }
 
-        $actual = json_encode(
-            Arr::sortRecursive((array) $this->decoded),
-            JSON_UNESCAPED_UNICODE
-        );
+        $actual = json_encode(Arr::sortRecursive(
+            (array) $this->decoded
+        ));
 
         foreach (Arr::sortRecursive($data) as $key => $value) {
             $unexpected = $this->jsonSearchStrings($key, $value);
@@ -175,7 +171,7 @@ class AssertableJsonString implements ArrayAccess, Countable
             PHPUnit::assertFalse(
                 Str::contains($actual, $unexpected),
                 'Found unexpected JSON fragment: '.PHP_EOL.PHP_EOL.
-                '['.json_encode([$key => $value], JSON_UNESCAPED_UNICODE).']'.PHP_EOL.PHP_EOL.
+                '['.json_encode([$key => $value]).']'.PHP_EOL.PHP_EOL.
                 'within'.PHP_EOL.PHP_EOL.
                 "[{$actual}]."
             );
@@ -192,10 +188,9 @@ class AssertableJsonString implements ArrayAccess, Countable
      */
     public function assertMissingExact(array $data)
     {
-        $actual = json_encode(
-            Arr::sortRecursive((array) $this->decoded),
-            JSON_UNESCAPED_UNICODE
-        );
+        $actual = json_encode(Arr::sortRecursive(
+            (array) $this->decoded
+        ));
 
         foreach (Arr::sortRecursive($data) as $key => $value) {
             $unexpected = $this->jsonSearchStrings($key, $value);
@@ -207,23 +202,10 @@ class AssertableJsonString implements ArrayAccess, Countable
 
         PHPUnit::fail(
             'Found unexpected JSON fragment: '.PHP_EOL.PHP_EOL.
-            '['.json_encode($data, JSON_UNESCAPED_UNICODE).']'.PHP_EOL.PHP_EOL.
+            '['.json_encode($data).']'.PHP_EOL.PHP_EOL.
             'within'.PHP_EOL.PHP_EOL.
             "[{$actual}]."
         );
-
-        return $this;
-    }
-
-    /**
-     * Assert that the response does not contain the given path.
-     *
-     * @param  string  $path
-     * @return $this
-     */
-    public function assertMissingPath($path)
-    {
-        PHPUnit::assertFalse(Arr::has($this->json(), $path));
 
         return $this;
     }
@@ -237,25 +219,7 @@ class AssertableJsonString implements ArrayAccess, Countable
      */
     public function assertPath($path, $expect)
     {
-        if ($expect instanceof Closure) {
-            PHPUnit::assertTrue($expect($this->json($path)));
-        } else {
-            PHPUnit::assertSame($expect, $this->json($path));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Assert that the given path in the response contains all of the expected values without looking at the order.
-     *
-     * @param  string  $path
-     * @param  array  $expect
-     * @return $this
-     */
-    public function assertPathCanonicalizing($path, $expect)
-    {
-        PHPUnit::assertEqualsCanonicalizing($expect, $this->json($path));
+        PHPUnit::assertSame($expect, $this->json($path));
 
         return $this;
     }
@@ -340,9 +304,9 @@ class AssertableJsonString implements ArrayAccess, Countable
      */
     protected function assertJsonMessage(array $data)
     {
-        $expected = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $expected = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-        $actual = json_encode($this->decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $actual = json_encode($this->decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         return 'Unable to find JSON: '.PHP_EOL.PHP_EOL.
             "[{$expected}]".PHP_EOL.PHP_EOL.
@@ -359,7 +323,7 @@ class AssertableJsonString implements ArrayAccess, Countable
      */
     protected function jsonSearchStrings($key, $value)
     {
-        $needle = Str::substr(json_encode([$key => $value], JSON_UNESCAPED_UNICODE), 1, -1);
+        $needle = substr(json_encode([$key => $value]), 1, -1);
 
         return [
             $needle.']',
@@ -373,7 +337,8 @@ class AssertableJsonString implements ArrayAccess, Countable
      *
      * @return int
      */
-    public function count(): int
+    #[\ReturnTypeWillChange]
+    public function count()
     {
         return count($this->decoded);
     }
@@ -384,7 +349,8 @@ class AssertableJsonString implements ArrayAccess, Countable
      * @param  mixed  $offset
      * @return bool
      */
-    public function offsetExists($offset): bool
+    #[\ReturnTypeWillChange]
+    public function offsetExists($offset)
     {
         return isset($this->decoded[$offset]);
     }
@@ -395,7 +361,8 @@ class AssertableJsonString implements ArrayAccess, Countable
      * @param  string  $offset
      * @return mixed
      */
-    public function offsetGet($offset): mixed
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
     {
         return $this->decoded[$offset];
     }
@@ -407,7 +374,8 @@ class AssertableJsonString implements ArrayAccess, Countable
      * @param  mixed  $value
      * @return void
      */
-    public function offsetSet($offset, $value): void
+    #[\ReturnTypeWillChange]
+    public function offsetSet($offset, $value)
     {
         $this->decoded[$offset] = $value;
     }
@@ -418,7 +386,8 @@ class AssertableJsonString implements ArrayAccess, Countable
      * @param  string  $offset
      * @return void
      */
-    public function offsetUnset($offset): void
+    #[\ReturnTypeWillChange]
+    public function offsetUnset($offset)
     {
         unset($this->decoded[$offset]);
     }

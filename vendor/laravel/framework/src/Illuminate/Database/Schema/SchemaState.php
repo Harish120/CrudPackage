@@ -86,22 +86,12 @@ abstract class SchemaState
     /**
      * Create a new process instance.
      *
-     * @param  mixed  ...$arguments
+     * @param  array  $arguments
      * @return \Symfony\Component\Process\Process
      */
     public function makeProcess(...$arguments)
     {
         return call_user_func($this->processFactory, ...$arguments);
-    }
-
-    /**
-     * Determine if the current connection has a migration table.
-     *
-     * @return bool
-     */
-    public function hasMigrationTable(): bool
-    {
-        return $this->connection->getSchemaBuilder()->hasTable($this->migrationTable);
     }
 
     /**

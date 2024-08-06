@@ -118,20 +118,6 @@ class SQLiteGrammar extends Grammar
     }
 
     /**
-     * Compile the index hints for the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  \Illuminate\Database\Query\IndexHint  $indexHint
-     * @return string
-     */
-    protected function compileIndexHint(Builder $query, $indexHint)
-    {
-        return $indexHint->type === 'force'
-                ? "indexed by {$indexHint->index}"
-                : '';
-    }
-
-    /**
      * Compile a "JSON length" statement into SQL.
      *
      * @param  string  $column
@@ -144,44 +130,6 @@ class SQLiteGrammar extends Grammar
         [$field, $path] = $this->wrapJsonFieldAndPath($column);
 
         return 'json_array_length('.$field.$path.') '.$operator.' '.$value;
-    }
-
-    /**
-     * Compile a "JSON contains" statement into SQL.
-     *
-     * @param  string  $column
-     * @param  mixed  $value
-     * @return string
-     */
-    protected function compileJsonContains($column, $value)
-    {
-        [$field, $path] = $this->wrapJsonFieldAndPath($column);
-
-        return 'exists (select 1 from json_each('.$field.$path.') where '.$this->wrap('json_each.value').' is '.$value.')';
-    }
-
-    /**
-     * Prepare the binding for a "JSON contains" statement.
-     *
-     * @param  mixed  $binding
-     * @return mixed
-     */
-    public function prepareBindingForJsonContains($binding)
-    {
-        return $binding;
-    }
-
-    /**
-     * Compile a "JSON contains key" statement into SQL.
-     *
-     * @param  string  $column
-     * @return string
-     */
-    protected function compileJsonContainsKey($column)
-    {
-        [$field, $path] = $this->wrapJsonFieldAndPath($column);
-
-        return 'json_type('.$field.$path.') is not null';
     }
 
     /**
@@ -210,19 +158,6 @@ class SQLiteGrammar extends Grammar
     public function compileInsertOrIgnore(Builder $query, array $values)
     {
         return Str::replaceFirst('insert', 'insert or ignore', $this->compileInsert($query, $values));
-    }
-
-    /**
-     * Compile an insert ignore statement using a subquery into SQL.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $columns
-     * @param  string  $sql
-     * @return string
-     */
-    public function compileInsertOrIgnoreUsing(Builder $query, array $columns, string $sql)
-    {
-        return Str::replaceFirst('insert', 'insert or ignore', $this->compileInsertUsing($query, $columns, $sql));
     }
 
     /**
@@ -387,7 +322,7 @@ class SQLiteGrammar extends Grammar
     public function compileTruncate(Builder $query)
     {
         return [
-            'delete from sqlite_sequence where name = ?' => [$this->getTablePrefix().$query->from],
+            'delete from sqlite_sequence where name = ?' => [$query->from],
             'delete from '.$this->wrapTable($query->from) => [],
         ];
     }

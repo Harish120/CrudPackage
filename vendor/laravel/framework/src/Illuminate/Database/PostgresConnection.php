@@ -2,7 +2,8 @@
 
 namespace Illuminate\Database;
 
-use Exception;
+use Doctrine\DBAL\Driver\PDOPgSql\Driver as DoctrineDriver;
+use Doctrine\DBAL\Version;
 use Illuminate\Database\PDO\PostgresDriver;
 use Illuminate\Database\Query\Grammars\PostgresGrammar as QueryGrammar;
 use Illuminate\Database\Query\Processors\PostgresProcessor;
@@ -10,42 +11,34 @@ use Illuminate\Database\Schema\Grammars\PostgresGrammar as SchemaGrammar;
 use Illuminate\Database\Schema\PostgresBuilder;
 use Illuminate\Database\Schema\PostgresSchemaState;
 use Illuminate\Filesystem\Filesystem;
+use PDO;
 
 class PostgresConnection extends Connection
 {
     /**
-     * Escape a binary value for safe SQL embedding.
+     * Bind values to their parameters in the given statement.
      *
-     * @param  string  $value
-     * @return string
+     * @param  \PDOStatement  $statement
+     * @param  array  $bindings
+     * @return void
      */
-    protected function escapeBinary($value)
+    public function bindValues($statement, $bindings)
     {
-        $hex = bin2hex($value);
+        foreach ($bindings as $key => $value) {
+            if (is_int($value)) {
+                $pdoParam = PDO::PARAM_INT;
+            } elseif (is_resource($value)) {
+                $pdoParam = PDO::PARAM_LOB;
+            } else {
+                $pdoParam = PDO::PARAM_STR;
+            }
 
-        return "'\x{$hex}'::bytea";
-    }
-
-    /**
-     * Escape a bool value for safe SQL embedding.
-     *
-     * @param  bool  $value
-     * @return string
-     */
-    protected function escapeBool($value)
-    {
-        return $value ? 'true' : 'false';
-    }
-
-    /**
-     * Determine if the given database exception was caused by a unique constraint violation.
-     *
-     * @param  \Exception  $exception
-     * @return bool
-     */
-    protected function isUniqueConstraintError(Exception $exception)
-    {
-        return '23505' === $exception->getCode();
+            $statement->bindValue(
+                is_string($key) ? $key : $key + 1,
+                $value,
+                $pdoParam
+            );
+        }
     }
 
     /**
@@ -55,9 +48,7 @@ class PostgresConnection extends Connection
      */
     protected function getDefaultQueryGrammar()
     {
-        ($grammar = new QueryGrammar)->setConnection($this);
-
-        return $this->withTablePrefix($grammar);
+        return $this->withTablePrefix(new QueryGrammar);
     }
 
     /**
@@ -81,9 +72,7 @@ class PostgresConnection extends Connection
      */
     protected function getDefaultSchemaGrammar()
     {
-        ($grammar = new SchemaGrammar)->setConnection($this);
-
-        return $this->withTablePrefix($grammar);
+        return $this->withTablePrefix(new SchemaGrammar);
     }
 
     /**
@@ -111,10 +100,10 @@ class PostgresConnection extends Connection
     /**
      * Get the Doctrine DBAL driver.
      *
-     * @return \Illuminate\Database\PDO\PostgresDriver
+     * @return \Doctrine\DBAL\Driver\PDOPgSql\Driver|\Illuminate\Database\PDO\PostgresDriver
      */
     protected function getDoctrineDriver()
     {
-        return new PostgresDriver;
+        return class_exists(Version::class) ? new DoctrineDriver : new PostgresDriver;
     }
 }

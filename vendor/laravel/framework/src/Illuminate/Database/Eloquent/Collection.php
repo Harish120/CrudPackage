@@ -5,29 +5,19 @@ namespace Illuminate\Database\Eloquent;
 use Illuminate\Contracts\Queue\QueueableCollection;
 use Illuminate\Contracts\Queue\QueueableEntity;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Relations\Concerns\InteractsWithDictionary;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection as BaseCollection;
+use Illuminate\Support\Str;
 use LogicException;
 
-/**
- * @template TKey of array-key
- * @template TModel of \Illuminate\Database\Eloquent\Model
- *
- * @extends \Illuminate\Support\Collection<TKey, TModel>
- */
 class Collection extends BaseCollection implements QueueableCollection
 {
-    use InteractsWithDictionary;
-
     /**
      * Find a model in the collection by key.
      *
-     * @template TFindDefault
-     *
      * @param  mixed  $key
-     * @param  TFindDefault  $default
-     * @return static<TKey, TModel>|TModel|TFindDefault
+     * @param  mixed  $default
+     * @return \Illuminate\Database\Eloquent\Model|static|null
      */
     public function find($key, $default = null)
     {
@@ -47,13 +37,15 @@ class Collection extends BaseCollection implements QueueableCollection
             return $this->whereIn($this->first()->getKeyName(), $key);
         }
 
-        return Arr::first($this->items, fn ($model) => $model->getKey() == $key, $default);
+        return Arr::first($this->items, function ($model) use ($key) {
+            return $model->getKey() == $key;
+        }, $default);
     }
 
     /**
      * Load a set of relationships onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @return $this
      */
     public function load($relations)
@@ -74,9 +66,9 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of aggregations over relationship's column onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @param  string  $column
-     * @param  string|null  $function
+     * @param  string  $function
      * @return $this
      */
     public function loadAggregate($relations, $column, $function = null)
@@ -111,7 +103,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of relationship counts onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @return $this
      */
     public function loadCount($relations)
@@ -122,7 +114,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of relationship's max column values onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @param  string  $column
      * @return $this
      */
@@ -134,7 +126,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of relationship's min column values onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @param  string  $column
      * @return $this
      */
@@ -146,7 +138,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of relationship's column summations onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @param  string  $column
      * @return $this
      */
@@ -158,7 +150,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of relationship's average column values onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @param  string  $column
      * @return $this
      */
@@ -170,7 +162,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of related existences onto the collection.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @return $this
      */
     public function loadExists($relations)
@@ -181,7 +173,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a set of relationships onto the collection if they are not already eager loaded.
      *
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>|string  $relations
+     * @param  array|string  $relations
      * @return $this
      */
     public function loadMissing($relations)
@@ -197,7 +189,7 @@ class Collection extends BaseCollection implements QueueableCollection
 
             $segments = explode('.', explode(':', $key)[0]);
 
-            if (str_contains($key, ':')) {
+            if (Str::contains($key, ':')) {
                 $segments[count($segments) - 1] .= ':'.explode(':', $key)[1];
             }
 
@@ -234,7 +226,9 @@ class Collection extends BaseCollection implements QueueableCollection
             $relation = reset($relation);
         }
 
-        $models->filter(fn ($model) => ! is_null($model) && ! $model->relationLoaded($name))->load($relation);
+        $models->filter(function ($model) use ($name) {
+            return ! is_null($model) && ! $model->relationLoaded($name);
+        })->load($relation);
 
         if (empty($path)) {
             return;
@@ -253,15 +247,19 @@ class Collection extends BaseCollection implements QueueableCollection
      * Load a set of relationships onto the mixed relationship collection.
      *
      * @param  string  $relation
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>  $relations
+     * @param  array  $relations
      * @return $this
      */
     public function loadMorph($relation, $relations)
     {
         $this->pluck($relation)
             ->filter()
-            ->groupBy(fn ($model) => get_class($model))
-            ->each(fn ($models, $className) => static::make($models)->load($relations[$className] ?? []));
+            ->groupBy(function ($model) {
+                return get_class($model);
+            })
+            ->each(function ($models, $className) use ($relations) {
+                static::make($models)->load($relations[$className] ?? []);
+            });
 
         return $this;
     }
@@ -270,15 +268,19 @@ class Collection extends BaseCollection implements QueueableCollection
      * Load a set of relationship counts onto the mixed relationship collection.
      *
      * @param  string  $relation
-     * @param  array<array-key, (callable(\Illuminate\Database\Eloquent\Builder): mixed)|string>  $relations
+     * @param  array  $relations
      * @return $this
      */
     public function loadMorphCount($relation, $relations)
     {
         $this->pluck($relation)
             ->filter()
-            ->groupBy(fn ($model) => get_class($model))
-            ->each(fn ($models, $className) => static::make($models)->loadCount($relations[$className] ?? []));
+            ->groupBy(function ($model) {
+                return get_class($model);
+            })
+            ->each(function ($models, $className) use ($relations) {
+                static::make($models)->loadCount($relations[$className] ?? []);
+            });
 
         return $this;
     }
@@ -286,7 +288,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Determine if a key exists in the collection.
      *
-     * @param  (callable(TModel, TKey): bool)|TModel|string|int  $key
+     * @param  mixed  $key
      * @param  mixed  $operator
      * @param  mixed  $value
      * @return bool
@@ -298,26 +300,32 @@ class Collection extends BaseCollection implements QueueableCollection
         }
 
         if ($key instanceof Model) {
-            return parent::contains(fn ($model) => $model->is($key));
+            return parent::contains(function ($model) use ($key) {
+                return $model->is($key);
+            });
         }
 
-        return parent::contains(fn ($model) => $model->getKey() == $key);
+        return parent::contains(function ($model) use ($key) {
+            return $model->getKey() == $key;
+        });
     }
 
     /**
      * Get the array of primary keys.
      *
-     * @return array<int, array-key>
+     * @return array
      */
     public function modelKeys()
     {
-        return array_map(fn ($model) => $model->getKey(), $this->items);
+        return array_map(function ($model) {
+            return $model->getKey();
+        }, $this->items);
     }
 
     /**
      * Merge the collection with the given items.
      *
-     * @param  iterable<array-key, TModel>  $items
+     * @param  \ArrayAccess|array  $items
      * @return static
      */
     public function merge($items)
@@ -325,7 +333,7 @@ class Collection extends BaseCollection implements QueueableCollection
         $dictionary = $this->getDictionary();
 
         foreach ($items as $item) {
-            $dictionary[$this->getDictionaryKey($item->getKey())] = $item;
+            $dictionary[$item->getKey()] = $item;
         }
 
         return new static(array_values($dictionary));
@@ -334,16 +342,16 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Run a map over each of the items.
      *
-     * @template TMapValue
-     *
-     * @param  callable(TModel, TKey): TMapValue  $callback
-     * @return \Illuminate\Support\Collection<TKey, TMapValue>|static<TKey, TMapValue>
+     * @param  callable  $callback
+     * @return \Illuminate\Support\Collection|static
      */
     public function map(callable $callback)
     {
         $result = parent::map($callback);
 
-        return $result->contains(fn ($item) => ! $item instanceof Model) ? $result->toBase() : $result;
+        return $result->contains(function ($item) {
+            return ! $item instanceof Model;
+        }) ? $result->toBase() : $result;
     }
 
     /**
@@ -351,23 +359,22 @@ class Collection extends BaseCollection implements QueueableCollection
      *
      * The callback should return an associative array with a single key / value pair.
      *
-     * @template TMapWithKeysKey of array-key
-     * @template TMapWithKeysValue
-     *
-     * @param  callable(TModel, TKey): array<TMapWithKeysKey, TMapWithKeysValue>  $callback
-     * @return \Illuminate\Support\Collection<TMapWithKeysKey, TMapWithKeysValue>|static<TMapWithKeysKey, TMapWithKeysValue>
+     * @param  callable  $callback
+     * @return \Illuminate\Support\Collection|static
      */
     public function mapWithKeys(callable $callback)
     {
         $result = parent::mapWithKeys($callback);
 
-        return $result->contains(fn ($item) => ! $item instanceof Model) ? $result->toBase() : $result;
+        return $result->contains(function ($item) {
+            return ! $item instanceof Model;
+        }) ? $result->toBase() : $result;
     }
 
     /**
      * Reload a fresh model instance from the database for all the entities.
      *
-     * @param  array<array-key, string>|string  $with
+     * @param  array|string  $with
      * @return static
      */
     public function fresh($with = [])
@@ -384,14 +391,18 @@ class Collection extends BaseCollection implements QueueableCollection
             ->get()
             ->getDictionary();
 
-        return $this->filter(fn ($model) => $model->exists && isset($freshModels[$model->getKey()]))
-            ->map(fn ($model) => $freshModels[$model->getKey()]);
+        return $this->filter(function ($model) use ($freshModels) {
+            return $model->exists && isset($freshModels[$model->getKey()]);
+        })
+        ->map(function ($model) use ($freshModels) {
+            return $freshModels[$model->getKey()];
+        });
     }
 
     /**
      * Diff the collection with the given items.
      *
-     * @param  iterable<array-key, TModel>  $items
+     * @param  \ArrayAccess|array  $items
      * @return static
      */
     public function diff($items)
@@ -401,7 +412,7 @@ class Collection extends BaseCollection implements QueueableCollection
         $dictionary = $this->getDictionary($items);
 
         foreach ($this->items as $item) {
-            if (! isset($dictionary[$this->getDictionaryKey($item->getKey())])) {
+            if (! isset($dictionary[$item->getKey()])) {
                 $diff->add($item);
             }
         }
@@ -412,7 +423,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Intersect the collection with the given items.
      *
-     * @param  iterable<array-key, TModel>  $items
+     * @param  \ArrayAccess|array  $items
      * @return static
      */
     public function intersect($items)
@@ -426,7 +437,7 @@ class Collection extends BaseCollection implements QueueableCollection
         $dictionary = $this->getDictionary($items);
 
         foreach ($this->items as $item) {
-            if (isset($dictionary[$this->getDictionaryKey($item->getKey())])) {
+            if (isset($dictionary[$item->getKey()])) {
                 $intersect->add($item);
             }
         }
@@ -437,9 +448,9 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Return only unique items from the collection.
      *
-     * @param  (callable(TModel, TKey): mixed)|string|null  $key
+     * @param  string|callable|null  $key
      * @param  bool  $strict
-     * @return static<int, TModel>
+     * @return static
      */
     public function unique($key = null, $strict = false)
     {
@@ -453,8 +464,8 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Returns only the models from the collection with the specified keys.
      *
-     * @param  array<array-key, mixed>|null  $keys
-     * @return static<int, TModel>
+     * @param  mixed  $keys
+     * @return static
      */
     public function only($keys)
     {
@@ -462,7 +473,7 @@ class Collection extends BaseCollection implements QueueableCollection
             return new static($this->items);
         }
 
-        $dictionary = Arr::only($this->getDictionary(), array_map($this->getDictionaryKey(...), (array) $keys));
+        $dictionary = Arr::only($this->getDictionary(), $keys);
 
         return new static(array_values($dictionary));
     }
@@ -470,16 +481,12 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Returns all models in the collection except the models with specified keys.
      *
-     * @param  array<array-key, mixed>|null  $keys
-     * @return static<int, TModel>
+     * @param  mixed  $keys
+     * @return static
      */
     public function except($keys)
     {
-        if (is_null($keys)) {
-            return new static($this->items);
-        }
-
-        $dictionary = Arr::except($this->getDictionary(), array_map($this->getDictionaryKey(...), (array) $keys));
+        $dictionary = Arr::except($this->getDictionary(), $keys);
 
         return new static(array_values($dictionary));
     }
@@ -487,7 +494,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Make the given, typically visible, attributes hidden across the entire collection.
      *
-     * @param  array<array-key, string>|string  $attributes
+     * @param  array|string  $attributes
      * @return $this
      */
     public function makeHidden($attributes)
@@ -498,7 +505,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Make the given, typically hidden, attributes visible across the entire collection.
      *
-     * @param  array<array-key, string>|string  $attributes
+     * @param  array|string  $attributes
      * @return $this
      */
     public function makeVisible($attributes)
@@ -507,31 +514,9 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Set the visible attributes across the entire collection.
-     *
-     * @param  array<int, string>  $visible
-     * @return $this
-     */
-    public function setVisible($visible)
-    {
-        return $this->each->setVisible($visible);
-    }
-
-    /**
-     * Set the hidden attributes across the entire collection.
-     *
-     * @param  array<int, string>  $hidden
-     * @return $this
-     */
-    public function setHidden($hidden)
-    {
-        return $this->each->setHidden($hidden);
-    }
-
-    /**
      * Append an attribute across the entire collection.
      *
-     * @param  array<array-key, string>|string  $attributes
+     * @param  array|string  $attributes
      * @return $this
      */
     public function append($attributes)
@@ -542,8 +527,8 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Get a dictionary keyed by primary keys.
      *
-     * @param  iterable<array-key, TModel>|null  $items
-     * @return array<array-key, TModel>
+     * @param  \ArrayAccess|array|null  $items
+     * @return array
      */
     public function getDictionary($items = null)
     {
@@ -552,7 +537,7 @@ class Collection extends BaseCollection implements QueueableCollection
         $dictionary = [];
 
         foreach ($items as $value) {
-            $dictionary[$this->getDictionaryKey($value->getKey())] = $value;
+            $dictionary[$value->getKey()] = $value;
         }
 
         return $dictionary;
@@ -563,20 +548,42 @@ class Collection extends BaseCollection implements QueueableCollection
      */
 
     /**
-     * Count the number of items in the collection by a field or using a callback.
+     * Get an array with the values of a given key.
      *
-     * @param  (callable(TModel, TKey): array-key)|string|null  $countBy
-     * @return \Illuminate\Support\Collection<array-key, int>
+     * @param  string|array  $value
+     * @param  string|null  $key
+     * @return \Illuminate\Support\Collection
      */
-    public function countBy($countBy = null)
+    public function pluck($value, $key = null)
     {
-        return $this->toBase()->countBy($countBy);
+        return $this->toBase()->pluck($value, $key);
+    }
+
+    /**
+     * Get the keys of the collection items.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function keys()
+    {
+        return $this->toBase()->keys();
+    }
+
+    /**
+     * Zip the collection together with one or more arrays.
+     *
+     * @param  mixed  ...$items
+     * @return \Illuminate\Support\Collection
+     */
+    public function zip($items)
+    {
+        return $this->toBase()->zip(...func_get_args());
     }
 
     /**
      * Collapse the collection of items into a single array.
      *
-     * @return \Illuminate\Support\Collection<int, mixed>
+     * @return \Illuminate\Support\Collection
      */
     public function collapse()
     {
@@ -587,7 +594,7 @@ class Collection extends BaseCollection implements QueueableCollection
      * Get a flattened array of the items in the collection.
      *
      * @param  int  $depth
-     * @return \Illuminate\Support\Collection<int, mixed>
+     * @return \Illuminate\Support\Collection
      */
     public function flatten($depth = INF)
     {
@@ -597,7 +604,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Flip the items in the collection.
      *
-     * @return \Illuminate\Support\Collection<TModel, TKey>
+     * @return \Illuminate\Support\Collection
      */
     public function flip()
     {
@@ -605,23 +612,11 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Get the keys of the collection items.
-     *
-     * @return \Illuminate\Support\Collection<int, TKey>
-     */
-    public function keys()
-    {
-        return $this->toBase()->keys();
-    }
-
-    /**
      * Pad collection to the specified length with a value.
      *
-     * @template TPadValue
-     *
      * @param  int  $size
-     * @param  TPadValue  $value
-     * @return \Illuminate\Support\Collection<int, TModel|TPadValue>
+     * @param  mixed  $value
+     * @return \Illuminate\Support\Collection
      */
     public function pad($size, $value)
     {
@@ -629,39 +624,16 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Get an array with the values of a given key.
-     *
-     * @param  string|array<array-key, string>  $value
-     * @param  string|null  $key
-     * @return \Illuminate\Support\Collection<array-key, mixed>
-     */
-    public function pluck($value, $key = null)
-    {
-        return $this->toBase()->pluck($value, $key);
-    }
-
-    /**
-     * Zip the collection together with one or more arrays.
-     *
-     * @template TZipValue
-     *
-     * @param  \Illuminate\Contracts\Support\Arrayable<array-key, TZipValue>|iterable<array-key, TZipValue>  ...$items
-     * @return \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, TModel|TZipValue>>
-     */
-    public function zip($items)
-    {
-        return $this->toBase()->zip(...func_get_args());
-    }
-
-    /**
      * Get the comparison function to detect duplicates.
      *
      * @param  bool  $strict
-     * @return callable(TModel, TModel): bool
+     * @return \Closure
      */
     protected function duplicateComparator($strict)
     {
-        return fn ($a, $b) => $a->is($b);
+        return function ($a, $b) {
+            return $a->is($b);
+        };
     }
 
     /**
@@ -677,10 +649,10 @@ class Collection extends BaseCollection implements QueueableCollection
             return;
         }
 
-        $class = $this->getQueueableModelClass($this->first());
+        $class = get_class($this->first());
 
         $this->each(function ($model) use ($class) {
-            if ($this->getQueueableModelClass($model) !== $class) {
+            if (get_class($model) !== $class) {
                 throw new LogicException('Queueing collections with multiple model types is not supported.');
             }
         });
@@ -689,22 +661,9 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Get the queueable class name for the given model.
-     *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return string
-     */
-    protected function getQueueableModelClass($model)
-    {
-        return method_exists($model, 'getQueueableClassName')
-                ? $model->getQueueableClassName()
-                : get_class($model);
-    }
-
-    /**
      * Get the identifiers for all of the entities.
      *
-     * @return array<int, mixed>
+     * @return array
      */
     public function getQueueableIds()
     {
@@ -720,7 +679,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Get the relationships of the entities being queued.
      *
-     * @return array<int, string>
+     * @return array
      */
     public function getQueueableRelations()
     {
@@ -780,7 +739,9 @@ class Collection extends BaseCollection implements QueueableCollection
 
         $class = get_class($model);
 
-        if ($this->filter(fn ($model) => ! $model instanceof $class)->isNotEmpty()) {
+        if ($this->filter(function ($model) use ($class) {
+            return ! $model instanceof $class;
+        })->isNotEmpty()) {
             throw new LogicException('Unable to create query for collection with mixed types.');
         }
 

@@ -33,20 +33,27 @@ abstract class DataCollector implements DataCollectorInterface
      */
     protected $data = [];
 
-    private ClonerInterface $cloner;
+    /**
+     * @var ClonerInterface
+     */
+    private $cloner;
 
     /**
      * Converts the variable into a serializable Data instance.
      *
      * This array can be displayed in the template using
      * the VarDumper component.
+     *
+     * @param mixed $var
+     *
+     * @return Data
      */
-    protected function cloneVar(mixed $var): Data
+    protected function cloneVar($var)
     {
         if ($var instanceof Data) {
             return $var;
         }
-        if (!isset($this->cloner)) {
+        if (null === $this->cloner) {
             $this->cloner = new VarCloner();
             $this->cloner->setMaxItems(-1);
             $this->cloner->addCasters($this->getCasters());
@@ -89,14 +96,14 @@ abstract class DataCollector implements DataCollectorInterface
         return $casters;
     }
 
-    public function __sleep(): array
+    /**
+     * @return array
+     */
+    public function __sleep()
     {
         return ['data'];
     }
 
-    /**
-     * @return void
-     */
     public function __wakeup()
     {
     }
@@ -104,22 +111,14 @@ abstract class DataCollector implements DataCollectorInterface
     /**
      * @internal to prevent implementing \Serializable
      */
-    final protected function serialize(): void
+    final protected function serialize()
     {
     }
 
     /**
      * @internal to prevent implementing \Serializable
      */
-    final protected function unserialize(string $data): void
+    final protected function unserialize($data)
     {
-    }
-
-    /**
-     * @return void
-     */
-    public function reset()
-    {
-        $this->data = [];
     }
 }

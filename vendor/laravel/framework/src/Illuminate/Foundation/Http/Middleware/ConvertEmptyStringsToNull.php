@@ -40,7 +40,7 @@ class ConvertEmptyStringsToNull extends TransformsRequest
      */
     protected function transform($key, $value)
     {
-        return $value === '' ? null : $value;
+        return is_string($value) && $value === '' ? null : $value;
     }
 
     /**
@@ -52,15 +52,5 @@ class ConvertEmptyStringsToNull extends TransformsRequest
     public static function skipWhen(Closure $callback)
     {
         static::$skipCallbacks[] = $callback;
-    }
-
-    /**
-     * Flush the middleware's global state.
-     *
-     * @return void
-     */
-    public static function flushState()
-    {
-        static::$skipCallbacks = [];
     }
 }

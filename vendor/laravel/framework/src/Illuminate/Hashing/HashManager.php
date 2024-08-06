@@ -5,9 +5,6 @@ namespace Illuminate\Hashing;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Support\Manager;
 
-/**
- * @mixin \Illuminate\Contracts\Hashing\Hasher
- */
 class HashManager extends Manager implements Hasher
 {
     /**
@@ -86,17 +83,6 @@ class HashManager extends Manager implements Hasher
     public function needsRehash($hashedValue, array $options = [])
     {
         return $this->driver()->needsRehash($hashedValue, $options);
-    }
-
-    /**
-     * Determine if a given string is already hashed.
-     *
-     * @param  string  $value
-     * @return bool
-     */
-    public function isHashed($value)
-    {
-        return password_get_info($value)['algo'] !== null;
     }
 
     /**

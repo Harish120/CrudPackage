@@ -18,23 +18,27 @@ interface SurrogateInterface
 {
     /**
      * Returns surrogate name.
+     *
+     * @return string
      */
-    public function getName(): string;
+    public function getName();
 
     /**
      * Returns a new cache strategy instance.
+     *
+     * @return ResponseCacheStrategyInterface
      */
-    public function createCacheStrategy(): ResponseCacheStrategyInterface;
+    public function createCacheStrategy();
 
     /**
      * Checks that at least one surrogate has Surrogate capability.
+     *
+     * @return bool
      */
-    public function hasSurrogateCapability(Request $request): bool;
+    public function hasSurrogateCapability(Request $request);
 
     /**
      * Adds Surrogate-capability to the given Request.
-     *
-     * @return void
      */
     public function addSurrogateCapability(Request $request);
 
@@ -42,36 +46,42 @@ interface SurrogateInterface
      * Adds HTTP headers to specify that the Response needs to be parsed for Surrogate.
      *
      * This method only adds an Surrogate HTTP header if the Response has some Surrogate tags.
-     *
-     * @return void
      */
     public function addSurrogateControl(Response $response);
 
     /**
      * Checks that the Response needs to be parsed for Surrogate tags.
+     *
+     * @return bool
      */
-    public function needsParsing(Response $response): bool;
+    public function needsParsing(Response $response);
 
     /**
      * Renders a Surrogate tag.
      *
      * @param string|null $alt     An alternate URI
      * @param string      $comment A comment to add as an esi:include tag
+     *
+     * @return string
      */
-    public function renderIncludeTag(string $uri, ?string $alt = null, bool $ignoreErrors = true, string $comment = ''): string;
+    public function renderIncludeTag(string $uri, ?string $alt = null, bool $ignoreErrors = true, string $comment = '');
 
     /**
      * Replaces a Response Surrogate tags with the included resource content.
+     *
+     * @return Response
      */
-    public function process(Request $request, Response $response): Response;
+    public function process(Request $request, Response $response);
 
     /**
      * Handles a Surrogate from the cache.
      *
      * @param string $alt An alternative URI
      *
+     * @return string
+     *
      * @throws \RuntimeException
      * @throws \Exception
      */
-    public function handle(HttpCache $cache, string $uri, string $alt, bool $ignoreErrors): string;
+    public function handle(HttpCache $cache, string $uri, string $alt, bool $ignoreErrors);
 }

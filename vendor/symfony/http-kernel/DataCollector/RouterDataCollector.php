@@ -32,9 +32,11 @@ class RouterDataCollector extends DataCollector
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @final
      */
-    public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null)
     {
         if ($response instanceof RedirectResponse) {
             $this->data['redirect'] = true;
@@ -48,9 +50,6 @@ class RouterDataCollector extends DataCollector
         unset($this->controllers[$request]);
     }
 
-    /**
-     * @return void
-     */
     public function reset()
     {
         $this->controllers = new \SplObjectStorage();
@@ -62,18 +61,13 @@ class RouterDataCollector extends DataCollector
         ];
     }
 
-    /**
-     * @return string
-     */
-    protected function guessRoute(Request $request, string|object|array $controller)
+    protected function guessRoute(Request $request, $controller)
     {
         return 'n/a';
     }
 
     /**
      * Remembers the controller associated to each request.
-     *
-     * @return void
      */
     public function onKernelController(ControllerEvent $event)
     {
@@ -83,22 +77,31 @@ class RouterDataCollector extends DataCollector
     /**
      * @return bool Whether this request will result in a redirect
      */
-    public function getRedirect(): bool
+    public function getRedirect()
     {
         return $this->data['redirect'];
     }
 
-    public function getTargetUrl(): ?string
+    /**
+     * @return string|null
+     */
+    public function getTargetUrl()
     {
         return $this->data['url'];
     }
 
-    public function getTargetRoute(): ?string
+    /**
+     * @return string|null
+     */
+    public function getTargetRoute()
     {
         return $this->data['route'];
     }
 
-    public function getName(): string
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
     {
         return 'router';
     }

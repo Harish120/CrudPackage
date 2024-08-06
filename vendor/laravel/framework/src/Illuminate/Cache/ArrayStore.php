@@ -3,7 +3,6 @@
 namespace Illuminate\Cache;
 
 use Illuminate\Contracts\Cache\LockProvider;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\InteractsWithTime;
 
 class ArrayStore extends TaggableStore implements LockProvider
@@ -58,7 +57,7 @@ class ArrayStore extends TaggableStore implements LockProvider
 
         $expiresAt = $item['expiresAt'] ?? 0;
 
-        if ($expiresAt !== 0 && (Carbon::now()->getPreciseTimestamp(3) / 1000) >= $expiresAt) {
+        if ($expiresAt !== 0 && $this->currentTime() > $expiresAt) {
             $this->forget($key);
 
             return;
@@ -174,7 +173,7 @@ class ArrayStore extends TaggableStore implements LockProvider
      * Get the expiration time of the key.
      *
      * @param  int  $seconds
-     * @return float
+     * @return int
      */
     protected function calculateExpiration($seconds)
     {
@@ -182,14 +181,14 @@ class ArrayStore extends TaggableStore implements LockProvider
     }
 
     /**
-     * Get the UNIX timestamp, with milliseconds, for the given number of seconds in the future.
+     * Get the UNIX timestamp for the given number of seconds.
      *
      * @param  int  $seconds
-     * @return float
+     * @return int
      */
     protected function toTimestamp($seconds)
     {
-        return $seconds > 0 ? (Carbon::now()->getPreciseTimestamp(3) / 1000) + $seconds : 0;
+        return $seconds > 0 ? $this->availableAt($seconds) : 0;
     }
 
     /**

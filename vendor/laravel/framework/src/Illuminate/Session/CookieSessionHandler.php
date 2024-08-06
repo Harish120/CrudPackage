@@ -33,25 +33,16 @@ class CookieSessionHandler implements SessionHandlerInterface
     protected $minutes;
 
     /**
-     * Indicates whether the session should be expired when the browser closes.
-     *
-     * @var bool
-     */
-    protected $expireOnClose;
-
-    /**
      * Create a new cookie driven handler instance.
      *
      * @param  \Illuminate\Contracts\Cookie\QueueingFactory  $cookie
      * @param  int  $minutes
-     * @param  bool  $expireOnClose
      * @return void
      */
-    public function __construct(CookieJar $cookie, $minutes, $expireOnClose = false)
+    public function __construct(CookieJar $cookie, $minutes)
     {
         $this->cookie = $cookie;
         $this->minutes = $minutes;
-        $this->expireOnClose = $expireOnClose;
     }
 
     /**
@@ -59,7 +50,8 @@ class CookieSessionHandler implements SessionHandlerInterface
      *
      * @return bool
      */
-    public function open($savePath, $sessionName): bool
+    #[\ReturnTypeWillChange]
+    public function open($savePath, $sessionName)
     {
         return true;
     }
@@ -69,7 +61,8 @@ class CookieSessionHandler implements SessionHandlerInterface
      *
      * @return bool
      */
-    public function close(): bool
+    #[\ReturnTypeWillChange]
+    public function close()
     {
         return true;
     }
@@ -79,13 +72,15 @@ class CookieSessionHandler implements SessionHandlerInterface
      *
      * @return string|false
      */
-    public function read($sessionId): string|false
+    #[\ReturnTypeWillChange]
+    public function read($sessionId)
     {
         $value = $this->request->cookies->get($sessionId) ?: '';
 
-        if (! is_null($decoded = json_decode($value, true)) && is_array($decoded) &&
-            isset($decoded['expires']) && $this->currentTime() <= $decoded['expires']) {
-            return $decoded['data'];
+        if (! is_null($decoded = json_decode($value, true)) && is_array($decoded)) {
+            if (isset($decoded['expires']) && $this->currentTime() <= $decoded['expires']) {
+                return $decoded['data'];
+            }
         }
 
         return '';
@@ -96,12 +91,13 @@ class CookieSessionHandler implements SessionHandlerInterface
      *
      * @return bool
      */
-    public function write($sessionId, $data): bool
+    #[\ReturnTypeWillChange]
+    public function write($sessionId, $data)
     {
         $this->cookie->queue($sessionId, json_encode([
             'data' => $data,
             'expires' => $this->availableAt($this->minutes * 60),
-        ]), $this->expireOnClose ? 0 : $this->minutes);
+        ]), $this->minutes);
 
         return true;
     }
@@ -111,7 +107,8 @@ class CookieSessionHandler implements SessionHandlerInterface
      *
      * @return bool
      */
-    public function destroy($sessionId): bool
+    #[\ReturnTypeWillChange]
+    public function destroy($sessionId)
     {
         $this->cookie->queue($this->cookie->forget($sessionId));
 
@@ -121,11 +118,12 @@ class CookieSessionHandler implements SessionHandlerInterface
     /**
      * {@inheritdoc}
      *
-     * @return int
+     * @return int|false
      */
-    public function gc($lifetime): int
+    #[\ReturnTypeWillChange]
+    public function gc($lifetime)
     {
-        return 0;
+        return true;
     }
 
     /**

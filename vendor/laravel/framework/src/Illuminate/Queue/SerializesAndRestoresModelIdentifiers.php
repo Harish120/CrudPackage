@@ -15,21 +15,16 @@ trait SerializesAndRestoresModelIdentifiers
      * Get the property value prepared for serialization.
      *
      * @param  mixed  $value
-     * @param  bool  $withRelations
      * @return mixed
      */
-    protected function getSerializedPropertyValue($value, $withRelations = true)
+    protected function getSerializedPropertyValue($value)
     {
         if ($value instanceof QueueableCollection) {
-            return (new ModelIdentifier(
+            return new ModelIdentifier(
                 $value->getQueueableClass(),
                 $value->getQueueableIds(),
-                $withRelations ? $value->getQueueableRelations() : [],
+                $value->getQueueableRelations(),
                 $value->getQueueableConnection()
-            ))->useCollectionClass(
-                ($collectionClass = get_class($value)) !== EloquentCollection::class
-                    ? $collectionClass
-                    : null
             );
         }
 
@@ -37,7 +32,7 @@ trait SerializesAndRestoresModelIdentifiers
             return new ModelIdentifier(
                 get_class($value),
                 $value->getQueueableId(),
-                $withRelations ? $value->getQueueableRelations() : [],
+                $value->getQueueableRelations(),
                 $value->getQueueableConnection()
             );
         }
@@ -71,9 +66,7 @@ trait SerializesAndRestoresModelIdentifiers
     protected function restoreCollection($value)
     {
         if (! $value->class || count($value->id) === 0) {
-            return ! is_null($value->collectionClass ?? null)
-                ? new $value->collectionClass
-                : new EloquentCollection;
+            return new EloquentCollection;
         }
 
         $collection = $this->getQueryForModelRestoration(

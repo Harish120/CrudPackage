@@ -3,7 +3,6 @@
 namespace Illuminate\Foundation\Validation;
 
 use Illuminate\Contracts\Validation\Factory;
-use Illuminate\Foundation\Precognition;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -26,13 +25,6 @@ trait ValidatesRequests
             $validator = $this->getValidationFactory()->make($request->all(), $validator);
         }
 
-        if ($request->isPrecognitive()) {
-            $validator->after(Precognition::afterValidationHook($request))
-                ->setRules(
-                    $request->filterPrecognitiveRules($validator->getRulesWithoutPlaceholders())
-                );
-        }
-
         return $validator->validate();
     }
 
@@ -42,26 +34,17 @@ trait ValidatesRequests
      * @param  \Illuminate\Http\Request  $request
      * @param  array  $rules
      * @param  array  $messages
-     * @param  array  $attributes
+     * @param  array  $customAttributes
      * @return array
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function validate(Request $request, array $rules,
-                             array $messages = [], array $attributes = [])
+                             array $messages = [], array $customAttributes = [])
     {
-        $validator = $this->getValidationFactory()->make(
-            $request->all(), $rules, $messages, $attributes
-        );
-
-        if ($request->isPrecognitive()) {
-            $validator->after(Precognition::afterValidationHook($request))
-                ->setRules(
-                    $request->filterPrecognitiveRules($validator->getRulesWithoutPlaceholders())
-                );
-        }
-
-        return $validator->validate();
+        return $this->getValidationFactory()->make(
+            $request->all(), $rules, $messages, $customAttributes
+        )->validate();
     }
 
     /**
@@ -71,16 +54,16 @@ trait ValidatesRequests
      * @param  \Illuminate\Http\Request  $request
      * @param  array  $rules
      * @param  array  $messages
-     * @param  array  $attributes
+     * @param  array  $customAttributes
      * @return array
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function validateWithBag($errorBag, Request $request, array $rules,
-                                    array $messages = [], array $attributes = [])
+                                    array $messages = [], array $customAttributes = [])
     {
         try {
-            return $this->validate($request, $rules, $messages, $attributes);
+            return $this->validate($request, $rules, $messages, $customAttributes);
         } catch (ValidationException $e) {
             $e->errorBag = $errorBag;
 

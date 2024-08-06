@@ -21,7 +21,7 @@ trait Debugging
      * Dumps the given props and exits.
      *
      * @param  string|null  $prop
-     * @return never
+     * @return void
      */
     public function dd(string $prop = null): void
     {

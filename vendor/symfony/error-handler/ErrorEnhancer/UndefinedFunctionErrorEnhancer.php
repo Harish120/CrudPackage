@@ -19,6 +19,9 @@ use Symfony\Component\ErrorHandler\Error\UndefinedFunctionError;
  */
 class UndefinedFunctionErrorEnhancer implements ErrorEnhancerInterface
 {
+    /**
+     * {@inheritdoc}
+     */
     public function enhance(\Throwable $error): ?\Throwable
     {
         if ($error instanceof FatalError) {
@@ -39,7 +42,7 @@ class UndefinedFunctionErrorEnhancer implements ErrorEnhancerInterface
 
         $prefix = 'Call to undefined function ';
         $prefixLen = \strlen($prefix);
-        if (!str_starts_with($message, $prefix)) {
+        if (0 !== strpos($message, $prefix)) {
             return null;
         }
 

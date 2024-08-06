@@ -54,7 +54,7 @@ class DatabaseMigrationRepository implements MigrationRepositoryInterface
     }
 
     /**
-     * Get the list of migrations.
+     * Get list of migrations.
      *
      * @param  int  $steps
      * @return array
@@ -66,21 +66,6 @@ class DatabaseMigrationRepository implements MigrationRepositoryInterface
         return $query->orderBy('batch', 'desc')
                      ->orderBy('migration', 'desc')
                      ->take($steps)->get()->all();
-    }
-
-    /**
-     * Get the list of the migrations by batch number.
-     *
-     * @param  int  $batchNumber
-     * @return array
-     */
-    public function getMigrationsByBatch($batch)
-    {
-        return $this->table()
-            ->where('batch', $batch)
-            ->orderBy('migration', 'desc')
-            ->get()
-            ->all();
     }
 
     /**

@@ -4,9 +4,8 @@ namespace Illuminate\Foundation\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider;
-use Symfony\Component\Console\Attribute\AsCommand;
+use Illuminate\Support\Str;
 
-#[AsCommand(name: 'event:generate')]
 class EventGenerateCommand extends Command
 {
     /**
@@ -38,7 +37,7 @@ class EventGenerateCommand extends Command
             }
         }
 
-        $this->components->info('Events and listeners generated successfully.');
+        $this->info('Events and listeners generated successfully!');
     }
 
     /**
@@ -50,7 +49,7 @@ class EventGenerateCommand extends Command
      */
     protected function makeEventAndListeners($event, $listeners)
     {
-        if (! str_contains($event, '\\')) {
+        if (! Str::contains($event, '\\')) {
             return;
         }
 

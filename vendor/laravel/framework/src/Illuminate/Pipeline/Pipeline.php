@@ -5,18 +5,15 @@ namespace Illuminate\Pipeline;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pipeline\Pipeline as PipelineContract;
-use Illuminate\Support\Traits\Conditionable;
 use RuntimeException;
 use Throwable;
 
 class Pipeline implements PipelineContract
 {
-    use Conditionable;
-
     /**
      * The container implementation.
      *
-     * @var \Illuminate\Contracts\Container\Container|null
+     * @var \Illuminate\Contracts\Container\Container
      */
     protected $container;
 
@@ -74,19 +71,6 @@ class Pipeline implements PipelineContract
     public function through($pipes)
     {
         $this->pipes = is_array($pipes) ? $pipes : func_get_args();
-
-        return $this;
-    }
-
-    /**
-     * Push additional pipes onto the pipeline.
-     *
-     * @param  array|mixed  $pipes
-     * @return $this
-     */
-    public function pipe($pipes)
-    {
-        array_push($this->pipes, ...(is_array($pipes) ? $pipes : func_get_args()));
 
         return $this;
     }

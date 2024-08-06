@@ -4,6 +4,8 @@ namespace Illuminate\Console;
 
 use Closure;
 use Illuminate\Console\Events\ArtisanStarting;
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Console\Application as ApplicationContract;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -11,11 +13,13 @@ use Illuminate\Support\ProcessUtils;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 class Application extends SymfonyApplication implements ApplicationContract
@@ -26,13 +30,6 @@ class Application extends SymfonyApplication implements ApplicationContract
      * @var \Illuminate\Contracts\Container\Container
      */
     protected $laravel;
-
-    /**
-     * The event dispatcher instance.
-     *
-     * @var \Illuminate\Contracts\Events\Dispatcher
-     */
-    protected $events;
 
     /**
      * The output from the previous command.
@@ -49,11 +46,11 @@ class Application extends SymfonyApplication implements ApplicationContract
     protected static $bootstrappers = [];
 
     /**
-     * A map of command names to classes.
+     * The Event Dispatcher.
      *
-     * @var array
+     * @var \Illuminate\Contracts\Events\Dispatcher
      */
-    protected $commandMap = [];
+    protected $events;
 
     /**
      * Create a new Artisan console application.
@@ -75,6 +72,32 @@ class Application extends SymfonyApplication implements ApplicationContract
         $this->events->dispatch(new ArtisanStarting($this));
 
         $this->bootstrap();
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return int
+     */
+    public function run(InputInterface $input = null, OutputInterface $output = null)
+    {
+        $commandName = $this->getCommandName(
+            $input = $input ?: new ArgvInput
+        );
+
+        $this->events->dispatch(
+            new CommandStarting(
+                $commandName, $input, $output = $output ?: new BufferedConsoleOutput
+            )
+        );
+
+        $exitCode = parent::run($input, $output);
+
+        $this->events->dispatch(
+            new CommandFinished($commandName, $input, $output, $exitCode)
+        );
+
+        return $exitCode;
     }
 
     /**
@@ -231,23 +254,11 @@ class Application extends SymfonyApplication implements ApplicationContract
     /**
      * Add a command, resolving through the application.
      *
-     * @param  \Illuminate\Console\Command|string  $command
-     * @return \Symfony\Component\Console\Command\Command|null
+     * @param  string  $command
+     * @return \Symfony\Component\Console\Command\Command
      */
     public function resolve($command)
     {
-        if (is_subclass_of($command, SymfonyCommand::class) && ($commandName = $command::getDefaultName())) {
-            foreach (explode('|', $commandName) as $name) {
-                $this->commandMap[$name] = $command;
-            }
-
-            return null;
-        }
-
-        if ($command instanceof Command) {
-            return $this->add($command);
-        }
-
         return $this->add($this->laravel->make($command));
     }
 
@@ -269,25 +280,13 @@ class Application extends SymfonyApplication implements ApplicationContract
     }
 
     /**
-     * Set the container command loader for lazy resolution.
-     *
-     * @return $this
-     */
-    public function setContainerCommandLoader()
-    {
-        $this->setCommandLoader(new ContainerCommandLoader($this->laravel, $this->commandMap));
-
-        return $this;
-    }
-
-    /**
      * Get the default input definition for the application.
      *
      * This is used to add the --env option to every available command.
      *
      * @return \Symfony\Component\Console\Input\InputDefinition
      */
-    protected function getDefaultInputDefinition(): InputDefinition
+    protected function getDefaultInputDefinition()
     {
         return tap(parent::getDefaultInputDefinition(), function ($definition) {
             $definition->addOption($this->getEnvironmentOption());

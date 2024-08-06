@@ -36,7 +36,7 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
      *
      * @var string
      */
-    protected $suffix;
+    private $suffix;
 
     /**
      * Create a new Amazon SQS queue instance.
@@ -116,7 +116,7 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
     }
 
     /**
-     * Push a new job onto the queue after (n) seconds.
+     * Push a new job onto the queue after a delay.
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
      * @param  string  $job
@@ -139,25 +139,6 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
                 ])->get('MessageId');
             }
         );
-    }
-
-    /**
-     * Push an array of jobs onto the queue.
-     *
-     * @param  array  $jobs
-     * @param  mixed  $data
-     * @param  string|null  $queue
-     * @return void
-     */
-    public function bulk($jobs, $data = '', $queue = null)
-    {
-        foreach ((array) $jobs as $job) {
-            if (isset($job->delay)) {
-                $this->later($job->delay, $job, $data, $queue);
-            } else {
-                $this->push($job, $data, $queue);
-            }
-        }
     }
 
     /**
@@ -220,7 +201,7 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
      */
     protected function suffixQueue($queue, $suffix = '')
     {
-        if (str_ends_with($queue, '.fifo')) {
+        if (Str::endsWith($queue, '.fifo')) {
             $queue = Str::beforeLast($queue, '.fifo');
 
             return rtrim($this->prefix, '/').'/'.Str::finish($queue, $suffix).'.fifo';

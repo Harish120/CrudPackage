@@ -7,9 +7,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Queue\Events\QueueBusy;
 use Illuminate\Support\Collection;
-use Symfony\Component\Console\Attribute\AsCommand;
 
-#[AsCommand(name: 'queue:monitor')]
 class MonitorCommand extends Command
 {
     /**
@@ -43,7 +41,14 @@ class MonitorCommand extends Command
     protected $events;
 
     /**
-     * Create a new queue monitor command.
+     * The table headers for the command.
+     *
+     * @var string[]
+     */
+    protected $headers = ['Connection', 'Queue', 'Size', 'Status'];
+
+    /**
+     * Create a new queue listen command.
      *
      * @param  \Illuminate\Contracts\Queue\Factory  $manager
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
@@ -91,31 +96,20 @@ class MonitorCommand extends Command
                 'connection' => $connection,
                 'queue' => $queue,
                 'size' => $size = $this->manager->connection($connection)->size($queue),
-                'status' => $size >= $this->option('max') ? '<fg=yellow;options=bold>ALERT</>' : '<fg=green;options=bold>OK</>',
+                'status' => $size >= $this->option('max') ? '<fg=red>ALERT</>' : 'OK',
             ];
         });
     }
 
     /**
-     * Display the queue sizes in the console.
+     * Display the failed jobs in the console.
      *
      * @param  \Illuminate\Support\Collection  $queues
      * @return void
      */
     protected function displaySizes(Collection $queues)
     {
-        $this->newLine();
-
-        $this->components->twoColumnDetail('<fg=gray>Queue name</>', '<fg=gray>Size / Status</>');
-
-        $queues->each(function ($queue) {
-            $name = '['.$queue['connection'].'] '.$queue['queue'];
-            $status = '['.$queue['size'].'] '.$queue['status'];
-
-            $this->components->twoColumnDetail($name, $status);
-        });
-
-        $this->newLine();
+        $this->table($this->headers, $queues);
     }
 
     /**
@@ -127,7 +121,7 @@ class MonitorCommand extends Command
     protected function dispatchEvents(Collection $queues)
     {
         foreach ($queues as $queue) {
-            if ($queue['status'] == '<fg=green;options=bold>OK</>') {
+            if ($queue['status'] == 'OK') {
                 continue;
             }
 

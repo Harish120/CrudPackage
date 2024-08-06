@@ -118,23 +118,10 @@ abstract class Connection
         $time = round((microtime(true) - $start) * 1000, 2);
 
         if (isset($this->events)) {
-            $this->event(new CommandExecuted(
-                $method, $this->parseParametersForEvent($parameters), $time, $this
-            ));
+            $this->event(new CommandExecuted($method, $parameters, $time, $this));
         }
 
         return $result;
-    }
-
-    /**
-     * Parse the command's parameters for event dispatching.
-     *
-     * @param  array  $parameters
-     * @return array
-     */
-    protected function parseParametersForEvent(array $parameters)
-    {
-        return $parameters;
     }
 
     /**
@@ -145,7 +132,9 @@ abstract class Connection
      */
     protected function event($event)
     {
-        $this->events?->dispatch($event);
+        if (isset($this->events)) {
+            $this->events->dispatch($event);
+        }
     }
 
     /**
@@ -156,7 +145,9 @@ abstract class Connection
      */
     public function listen(Closure $callback)
     {
-        $this->events?->listen(CommandExecuted::class, $callback);
+        if (isset($this->events)) {
+            $this->events->listen(CommandExecuted::class, $callback);
+        }
     }
 
     /**

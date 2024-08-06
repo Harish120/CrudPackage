@@ -17,15 +17,15 @@ use Symfony\Component\VarDumper\Dumper\ContextProvider\SourceContextProvider;
 /**
  * @author Nicolas Grekas <p@tchwork.com>
  */
-class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
+class Data implements \ArrayAccess, \Countable, \IteratorAggregate
 {
-    private array $data;
-    private int $position = 0;
-    private int|string $key = 0;
-    private int $maxDepth = 20;
-    private int $maxItemsPerDepth = -1;
-    private int $useRefHandles = -1;
-    private array $context = [];
+    private $data;
+    private $position = 0;
+    private $key = 0;
+    private $maxDepth = 20;
+    private $maxItemsPerDepth = -1;
+    private $useRefHandles = -1;
+    private $context = [];
 
     /**
      * @param array $data An array as returned by ClonerInterface::cloneVar()
@@ -35,7 +35,10 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         $this->data = $data;
     }
 
-    public function getType(): ?string
+    /**
+     * @return string|null
+     */
+    public function getType()
     {
         $item = $this->data[$this->position][$this->key];
 
@@ -68,7 +71,7 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
      *
      * @return string|int|float|bool|array|Data[]|null
      */
-    public function getValue(array|bool $recursive = false): string|int|float|bool|array|null
+    public function getValue($recursive = false)
     {
         $item = $this->data[$this->position][$this->key];
 
@@ -107,12 +110,20 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         return $children;
     }
 
-    public function count(): int
+    /**
+     * @return int
+     */
+    #[\ReturnTypeWillChange]
+    public function count()
     {
         return \count($this->getValue());
     }
 
-    public function getIterator(): \Traversable
+    /**
+     * @return \Traversable
+     */
+    #[\ReturnTypeWillChange]
+    public function getIterator()
     {
         if (!\is_array($value = $this->getValue())) {
             throw new \LogicException(sprintf('"%s" object holds non-iterable type "%s".', self::class, get_debug_type($value)));
@@ -121,9 +132,6 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         yield from $value;
     }
 
-    /**
-     * @return mixed
-     */
     public function __get(string $key)
     {
         if (null !== $data = $this->seek($key)) {
@@ -135,32 +143,54 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         return null;
     }
 
-    public function __isset(string $key): bool
+    /**
+     * @return bool
+     */
+    public function __isset(string $key)
     {
         return null !== $this->seek($key);
     }
 
-    public function offsetExists(mixed $key): bool
+    /**
+     * @return bool
+     */
+    #[\ReturnTypeWillChange]
+    public function offsetExists($key)
     {
         return $this->__isset($key);
     }
 
-    public function offsetGet(mixed $key): mixed
+    /**
+     * @return mixed
+     */
+    #[\ReturnTypeWillChange]
+    public function offsetGet($key)
     {
         return $this->__get($key);
     }
 
-    public function offsetSet(mixed $key, mixed $value): void
+    /**
+     * @return void
+     */
+    #[\ReturnTypeWillChange]
+    public function offsetSet($key, $value)
     {
         throw new \BadMethodCallException(self::class.' objects are immutable.');
     }
 
-    public function offsetUnset(mixed $key): void
+    /**
+     * @return void
+     */
+    #[\ReturnTypeWillChange]
+    public function offsetUnset($key)
     {
         throw new \BadMethodCallException(self::class.' objects are immutable.');
     }
 
-    public function __toString(): string
+    /**
+     * @return string
+     */
+    public function __toString()
     {
         $value = $this->getValue();
 
@@ -173,8 +203,10 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
 
     /**
      * Returns a depth limited clone of $this.
+     *
+     * @return static
      */
-    public function withMaxDepth(int $maxDepth): static
+    public function withMaxDepth(int $maxDepth)
     {
         $data = clone $this;
         $data->maxDepth = $maxDepth;
@@ -184,8 +216,10 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
 
     /**
      * Limits the number of elements per depth level.
+     *
+     * @return static
      */
-    public function withMaxItemsPerDepth(int $maxItemsPerDepth): static
+    public function withMaxItemsPerDepth(int $maxItemsPerDepth)
     {
         $data = clone $this;
         $data->maxItemsPerDepth = $maxItemsPerDepth;
@@ -197,8 +231,10 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
      * Enables/disables objects' identifiers tracking.
      *
      * @param bool $useRefHandles False to hide global ref. handles
+     *
+     * @return static
      */
-    public function withRefHandles(bool $useRefHandles): static
+    public function withRefHandles(bool $useRefHandles)
     {
         $data = clone $this;
         $data->useRefHandles = $useRefHandles ? -1 : 0;
@@ -206,7 +242,10 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         return $data;
     }
 
-    public function withContext(array $context): static
+    /**
+     * @return static
+     */
+    public function withContext(array $context)
     {
         $data = clone $this;
         $data->context = $context;
@@ -214,15 +253,14 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         return $data;
     }
 
-    public function getContext(): array
-    {
-        return $this->context;
-    }
-
     /**
      * Seeks to a specific key in nested data structures.
+     *
+     * @param string|int $key The key to seek to
+     *
+     * @return static|null
      */
-    public function seek(string|int $key): ?static
+    public function seek($key)
     {
         $item = $this->data[$this->position][$this->key];
 
@@ -265,21 +303,21 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
 
     /**
      * Dumps data with a DumperInterface dumper.
-     *
-     * @return void
      */
     public function dump(DumperInterface $dumper)
     {
         $refs = [0];
         $cursor = new Cursor();
-        $cursor->hashType = -1;
-        $cursor->attr = $this->context[SourceContextProvider::class] ?? [];
-        $label = $this->context['label'] ?? '';
 
-        if ($cursor->attr || '' !== $label) {
-            $dumper->dumpScalar($cursor, 'label', $label);
+        if ($cursor->attr = $this->context[SourceContextProvider::class] ?? []) {
+            $cursor->attr['if_links'] = true;
+            $cursor->hashType = -1;
+            $dumper->dumpScalar($cursor, 'default', '^');
+            $cursor->attr = ['if_links' => true];
+            $dumper->dumpScalar($cursor, 'default', ' ');
+            $cursor->hashType = 0;
         }
-        $cursor->hashType = 0;
+
         $this->dumpItem($dumper, $cursor, $refs, $this->data[$this->position][$this->key]);
     }
 
@@ -288,7 +326,7 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
      *
      * @param mixed $item A Stub object or the original value being dumped
      */
-    private function dumpItem(DumperInterface $dumper, Cursor $cursor, array &$refs, mixed $item): void
+    private function dumpItem(DumperInterface $dumper, Cursor $cursor, array &$refs, $item)
     {
         $cursor->refIndex = 0;
         $cursor->softRefTo = $cursor->softRefHandle = $cursor->softRefCount = 0;
@@ -370,10 +408,6 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
                     $dumper->leaveHash($cursor, $item->type, $item->class, $withChildren, $cut);
                     break;
 
-                case Stub::TYPE_SCALAR:
-                    $dumper->dumpScalar($cursor, 'default', $item->attr['value']);
-                    break;
-
                 default:
                     throw new \RuntimeException(sprintf('Unexpected Stub type: "%s".', $item->type));
             }
@@ -414,7 +448,7 @@ class Data implements \ArrayAccess, \Countable, \IteratorAggregate, \Stringable
         return $hashCut;
     }
 
-    private function getStub(mixed $item): mixed
+    private function getStub($item)
     {
         if (!$item || !\is_array($item)) {
             return $item;

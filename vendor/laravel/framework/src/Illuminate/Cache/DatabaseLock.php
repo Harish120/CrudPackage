@@ -4,6 +4,7 @@ namespace Illuminate\Cache;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Carbon;
 
 class DatabaseLock extends Lock
 {
@@ -29,13 +30,6 @@ class DatabaseLock extends Lock
     protected $lottery;
 
     /**
-     * The default number of seconds that a lock should be held.
-     *
-     * @var int
-     */
-    protected $defaultTimeoutInSeconds;
-
-    /**
      * Create a new lock instance.
      *
      * @param  \Illuminate\Database\Connection  $connection
@@ -46,14 +40,13 @@ class DatabaseLock extends Lock
      * @param  array  $lottery
      * @return void
      */
-    public function __construct(Connection $connection, $table, $name, $seconds, $owner = null, $lottery = [2, 100], $defaultTimeoutInSeconds = 86400)
+    public function __construct(Connection $connection, $table, $name, $seconds, $owner = null, $lottery = [2, 100])
     {
         parent::__construct($name, $seconds, $owner);
 
         $this->connection = $connection;
         $this->table = $table;
         $this->lottery = $lottery;
-        $this->defaultTimeoutInSeconds = $defaultTimeoutInSeconds;
     }
 
     /**
@@ -63,6 +56,8 @@ class DatabaseLock extends Lock
      */
     public function acquire()
     {
+        $acquired = false;
+
         try {
             $this->connection->table($this->table)->insert([
                 'key' => $this->name,
@@ -71,7 +66,7 @@ class DatabaseLock extends Lock
             ]);
 
             $acquired = true;
-        } catch (QueryException) {
+        } catch (QueryException $e) {
             $updated = $this->connection->table($this->table)
                 ->where('key', $this->name)
                 ->where(function ($query) {
@@ -98,9 +93,7 @@ class DatabaseLock extends Lock
      */
     protected function expiresAt()
     {
-        $lockTimeout = $this->seconds > 0 ? $this->seconds : $this->defaultTimeoutInSeconds;
-
-        return time() + $lockTimeout;
+        return $this->seconds > 0 ? time() + $this->seconds : Carbon::now()->addDays(1)->getTimestamp();
     }
 
     /**

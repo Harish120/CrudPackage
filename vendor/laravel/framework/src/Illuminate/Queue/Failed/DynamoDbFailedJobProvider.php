@@ -79,20 +79,6 @@ class DynamoDbFailedJobProvider implements FailedJobProviderInterface
     }
 
     /**
-     * Get the IDs of all of the failed jobs.
-     *
-     * @param  string|null  $queue
-     * @return array
-     */
-    public function ids($queue = null)
-    {
-        return collect($this->all())
-            ->when(! is_null($queue), fn ($collect) => $collect->where('queue', $queue))
-            ->pluck('id')
-            ->all();
-    }
-
-    /**
      * Get a list of all of the failed jobs.
      *
      * @return array
@@ -179,12 +165,11 @@ class DynamoDbFailedJobProvider implements FailedJobProviderInterface
     /**
      * Flush all of the failed jobs from storage.
      *
-     * @param  int|null  $hours
      * @return void
      *
      * @throws \Exception
      */
-    public function flush($hours = null)
+    public function flush()
     {
         throw new Exception("DynamoDb failed job storage may not be flushed. Please use DynamoDb's TTL features on your expires_at attribute.");
     }

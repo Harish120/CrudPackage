@@ -2,14 +2,11 @@
 
 namespace Illuminate\Mail\Transport;
 
-use Illuminate\Support\Str;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\Envelope;
-use Symfony\Component\Mailer\SentMessage;
-use Symfony\Component\Mailer\Transport\TransportInterface;
-use Symfony\Component\Mime\RawMessage;
+use Swift_Mime_SimpleMessage;
+use Swift_Mime_SimpleMimeEntity;
 
-class LogTransport implements TransportInterface
+class LogTransport extends Transport
 {
     /**
      * The Logger instance.
@@ -31,49 +28,35 @@ class LogTransport implements TransportInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return int
      */
-    public function send(RawMessage $message, Envelope $envelope = null): ?SentMessage
+    public function send(Swift_Mime_SimpleMessage $message, &$failedRecipients = null)
     {
-        $string = Str::of($message->toString());
+        $this->beforeSendPerformed($message);
 
-        if ($string->contains('Content-Type: multipart/')) {
-            $boundary = $string
-                ->after('boundary=')
-                ->before("\r\n")
-                ->prepend('--')
-                ->append("\r\n");
+        $this->logger->debug($this->getMimeEntityString($message));
 
-            $string = $string
-                ->explode($boundary)
-                ->map($this->decodeQuotedPrintableContent(...))
-                ->implode($boundary);
-        } elseif ($string->contains('Content-Transfer-Encoding: quoted-printable')) {
-            $string = $this->decodeQuotedPrintableContent($string);
-        }
+        $this->sendPerformed($message);
 
-        $this->logger->debug((string) $string);
-
-        return new SentMessage($message, $envelope ?? Envelope::create($message));
+        return $this->numberOfRecipients($message);
     }
 
     /**
-     * Decode the given quoted printable content.
+     * Get a loggable string out of a Swiftmailer entity.
      *
-     * @param  string  $part
+     * @param  \Swift_Mime_SimpleMimeEntity  $entity
      * @return string
      */
-    protected function decodeQuotedPrintableContent(string $part)
+    protected function getMimeEntityString(Swift_Mime_SimpleMimeEntity $entity)
     {
-        if (! str_contains($part, 'Content-Transfer-Encoding: quoted-printable')) {
-            return $part;
+        $string = (string) $entity->getHeaders().PHP_EOL.$entity->getBody();
+
+        foreach ($entity->getChildren() as $children) {
+            $string .= PHP_EOL.PHP_EOL.$this->getMimeEntityString($children);
         }
 
-        [$headers, $content] = explode("\r\n\r\n", $part, 2);
-
-        return implode("\r\n\r\n", [
-            $headers,
-            quoted_printable_decode($content),
-        ]);
+        return $string;
     }
 
     /**
@@ -84,15 +67,5 @@ class LogTransport implements TransportInterface
     public function logger()
     {
         return $this->logger;
-    }
-
-    /**
-     * Get the string representation of the transport.
-     *
-     * @return string
-     */
-    public function __toString(): string
-    {
-        return 'log';
     }
 }

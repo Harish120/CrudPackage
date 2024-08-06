@@ -12,8 +12,6 @@
 namespace Symfony\Component\HttpKernel\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
-use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
-use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -30,44 +28,41 @@ class ControllerArgumentValueResolverPass implements CompilerPassInterface
 {
     use PriorityTaggedServiceTrait;
 
-    /**
-     * @return void
-     */
+    private $argumentResolverService;
+    private $argumentValueResolverTag;
+    private $traceableResolverStopwatch;
+
+    public function __construct(string $argumentResolverService = 'argument_resolver', string $argumentValueResolverTag = 'controller.argument_value_resolver', string $traceableResolverStopwatch = 'debug.stopwatch')
+    {
+        if (0 < \func_num_args()) {
+            trigger_deprecation('symfony/http-kernel', '5.3', 'Configuring "%s" is deprecated.', __CLASS__);
+        }
+
+        $this->argumentResolverService = $argumentResolverService;
+        $this->argumentValueResolverTag = $argumentValueResolverTag;
+        $this->traceableResolverStopwatch = $traceableResolverStopwatch;
+    }
+
     public function process(ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('argument_resolver')) {
+        if (!$container->hasDefinition($this->argumentResolverService)) {
             return;
         }
 
-        $definitions = $container->getDefinitions();
-        $namedResolvers = $this->findAndSortTaggedServices(new TaggedIteratorArgument('controller.targeted_value_resolver', 'name', needsIndexes: true), $container);
-        $resolvers = $this->findAndSortTaggedServices(new TaggedIteratorArgument('controller.argument_value_resolver', 'name', needsIndexes: true), $container);
+        $resolvers = $this->findAndSortTaggedServices($this->argumentValueResolverTag, $container);
 
-        foreach ($resolvers as $name => $resolver) {
-            if ($definitions[(string) $resolver]->hasTag('controller.targeted_value_resolver')) {
-                unset($resolvers[$name]);
-            } else {
-                $namedResolvers[$name] ??= clone $resolver;
-            }
-        }
-
-        if ($container->getParameter('kernel.debug') && class_exists(Stopwatch::class) && $container->has('debug.stopwatch')) {
-            foreach ($resolvers as $name => $resolver) {
-                $resolvers[$name] = new Reference('.debug.value_resolver.'.$resolver);
-                $container->register('.debug.value_resolver.'.$resolver, TraceableValueResolver::class)
-                    ->setArguments([$resolver, new Reference('debug.stopwatch')]);
-            }
-            foreach ($namedResolvers as $name => $resolver) {
-                $namedResolvers[$name] = new Reference('.debug.value_resolver.'.$resolver);
-                $container->register('.debug.value_resolver.'.$resolver, TraceableValueResolver::class)
-                    ->setArguments([$resolver, new Reference('debug.stopwatch')]);
+        if ($container->getParameter('kernel.debug') && class_exists(Stopwatch::class) && $container->has($this->traceableResolverStopwatch)) {
+            foreach ($resolvers as $resolverReference) {
+                $id = (string) $resolverReference;
+                $container->register("debug.$id", TraceableValueResolver::class)
+                    ->setDecoratedService($id)
+                    ->setArguments([new Reference("debug.$id.inner"), new Reference($this->traceableResolverStopwatch)]);
             }
         }
 
         $container
-            ->getDefinition('argument_resolver')
-            ->replaceArgument(1, new IteratorArgument(array_values($resolvers)))
-            ->setArgument(2, new ServiceLocatorArgument($namedResolvers))
+            ->getDefinition($this->argumentResolverService)
+            ->replaceArgument(1, new IteratorArgument($resolvers))
         ;
     }
 }

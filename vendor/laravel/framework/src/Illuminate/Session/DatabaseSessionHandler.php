@@ -39,7 +39,7 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
     /**
      * The container instance.
      *
-     * @var \Illuminate\Contracts\Container\Container|null
+     * @var \Illuminate\Contracts\Container\Container
      */
     protected $container;
 
@@ -72,7 +72,8 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
      *
      * @return bool
      */
-    public function open($savePath, $sessionName): bool
+    #[\ReturnTypeWillChange]
+    public function open($savePath, $sessionName)
     {
         return true;
     }
@@ -82,7 +83,8 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
      *
      * @return bool
      */
-    public function close(): bool
+    #[\ReturnTypeWillChange]
+    public function close()
     {
         return true;
     }
@@ -92,7 +94,8 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
      *
      * @return string|false
      */
-    public function read($sessionId): string|false
+    #[\ReturnTypeWillChange]
+    public function read($sessionId)
     {
         $session = (object) $this->getQuery()->find($sessionId);
 
@@ -128,7 +131,8 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
      *
      * @return bool
      */
-    public function write($sessionId, $data): bool
+    #[\ReturnTypeWillChange]
+    public function write($sessionId, $data)
     {
         $payload = $this->getDefaultPayload($data);
 
@@ -156,7 +160,7 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
     {
         try {
             return $this->getQuery()->insert(Arr::set($payload, 'id', $sessionId));
-        } catch (QueryException) {
+        } catch (QueryException $e) {
             $this->performUpdate($sessionId, $payload);
         }
     }
@@ -242,7 +246,7 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
     /**
      * Get the IP address for the current request.
      *
-     * @return string|null
+     * @return string
      */
     protected function ipAddress()
     {
@@ -264,7 +268,8 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
      *
      * @return bool
      */
-    public function destroy($sessionId): bool
+    #[\ReturnTypeWillChange]
+    public function destroy($sessionId)
     {
         $this->getQuery()->where('id', $sessionId)->delete();
 
@@ -274,11 +279,12 @@ class DatabaseSessionHandler implements ExistenceAwareInterface, SessionHandlerI
     /**
      * {@inheritdoc}
      *
-     * @return int
+     * @return int|false
      */
-    public function gc($lifetime): int
+    #[\ReturnTypeWillChange]
+    public function gc($lifetime)
     {
-        return $this->getQuery()->where('last_activity', '<=', $this->currentTime() - $lifetime)->delete();
+        $this->getQuery()->where('last_activity', '<=', $this->currentTime() - $lifetime)->delete();
     }
 
     /**

@@ -2,11 +2,12 @@
 
 namespace Illuminate\Queue\Console;
 
-use Illuminate\Console\MigrationGeneratorCommand;
-use Symfony\Component\Console\Attribute\AsCommand;
+use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Composer;
+use Illuminate\Support\Str;
 
-#[AsCommand(name: 'queue:table')]
-class TableCommand extends MigrationGeneratorCommand
+class TableCommand extends Command
 {
     /**
      * The console command name.
@@ -23,22 +24,79 @@ class TableCommand extends MigrationGeneratorCommand
     protected $description = 'Create a migration for the queue jobs database table';
 
     /**
-     * Get the migration table name.
+     * The filesystem instance.
      *
-     * @return string
+     * @var \Illuminate\Filesystem\Filesystem
      */
-    protected function migrationTableName()
+    protected $files;
+
+    /**
+     * @var \Illuminate\Support\Composer
+     */
+    protected $composer;
+
+    /**
+     * Create a new queue job table command instance.
+     *
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Illuminate\Support\Composer  $composer
+     * @return void
+     */
+    public function __construct(Filesystem $files, Composer $composer)
     {
-        return $this->laravel['config']['queue.connections.database.table'];
+        parent::__construct();
+
+        $this->files = $files;
+        $this->composer = $composer;
     }
 
     /**
-     * Get the path to the migration stub file.
+     * Execute the console command.
      *
+     * @return void
+     */
+    public function handle()
+    {
+        $table = $this->laravel['config']['queue.connections.database.table'];
+
+        $this->replaceMigration(
+            $this->createBaseMigration($table), $table, Str::studly($table)
+        );
+
+        $this->info('Migration created successfully!');
+
+        $this->composer->dumpAutoloads();
+    }
+
+    /**
+     * Create a base migration file for the table.
+     *
+     * @param  string  $table
      * @return string
      */
-    protected function migrationStubFile()
+    protected function createBaseMigration($table = 'jobs')
     {
-        return __DIR__.'/stubs/jobs.stub';
+        return $this->laravel['migration.creator']->create(
+            'create_'.$table.'_table', $this->laravel->databasePath().'/migrations'
+        );
+    }
+
+    /**
+     * Replace the generated migration with the job table stub.
+     *
+     * @param  string  $path
+     * @param  string  $table
+     * @param  string  $tableClassName
+     * @return void
+     */
+    protected function replaceMigration($path, $table, $tableClassName)
+    {
+        $stub = str_replace(
+            ['{{table}}', '{{tableClassName}}'],
+            [$table, $tableClassName],
+            $this->files->get(__DIR__.'/stubs/jobs.stub')
+        );
+
+        $this->files->put($path, $stub);
     }
 }
