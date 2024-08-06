@@ -1,6 +1,6 @@
 <?php
 
-namespace Harry\CrudPackage\Commands;
+namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
 use Illuminate\Support\Str;
