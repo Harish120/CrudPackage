@@ -38,6 +38,9 @@ class CrudCommand extends Command
             'name' => "{$modelName}Controller",
             '--resource' => true,
         ]);
+
+        $controllerFile = app_path("Http/Controllers/{$modelName}Controller.php");
+        $this->updateControllerFile($controllerFile, $modelName);
     }
 
     protected function generateRoutes($modelName)
