@@ -44,7 +44,14 @@ class MigrationGenerator
             $parts = explode(':', $column);
             $name = $parts[0];
             $type = $parts[1];
-            $columnDefinitions .= "\$table->$type('$name');\n\t\t\t";
+            $nullable = false;
+
+            if (str_ends_with($type, '?')) {
+                $nullable = true;
+                $type = rtrim($type, '?');
+            }
+            $nullableDefinition = $nullable ? '->nullable()' : '';
+            $columnDefinitions .= "\$table->$type('$name'){$nullableDefinition};\n\t\t\t";
         }
 
         $migrationContent = str_replace(
