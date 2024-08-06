@@ -15,7 +15,7 @@ class ControllerGenerator
     public function generate($modelName)
     {
         $this->command->call('make:controller', [
-            'name' => "{$modelName}Controller",
+            'name' => "Api/{$modelName}Controller",
             '--api' => true,
         ]);
 
