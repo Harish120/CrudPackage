@@ -1,8 +1,5 @@
 <?php
-
-// packages/Harish/CrudPackage/src/Console/CrudCommand.php
-
-namespace Harish\CrudPackage\Console;
+namespace CrudPackage\Console;
 
 use Illuminate\Console\Command;
 
