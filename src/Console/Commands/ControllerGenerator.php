@@ -113,7 +113,7 @@ class ControllerGenerator
         ";
     }
 
-    protected function generateUpdateMethod($modelName)
+    protected function generateUpdateMethod($modelName, $columnsArray)
     {
         $validationRules = $this->generateValidationRules($columnsArray);
         return "
