@@ -33,4 +33,15 @@ class FileHelper
     {
         return File::get($path);
     }
+
+    /**
+     * Check if a file exists.
+     *
+     * @param string $path The path to the file.
+     * @return bool
+     */
+    public static function exists($path)
+    {
+        return File::exists($path);
+    }
 }

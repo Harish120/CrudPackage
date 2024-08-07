@@ -3,6 +3,7 @@
 namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
+use Hoa\File\File;
 
 class ControllerGenerator
 {
@@ -20,10 +21,44 @@ class ControllerGenerator
             '--api' => true,
         ]);
 
+        // Generate the resource file
+        $this->generateResourceFile($modelName);
+
+        // Get the controller file path
         $controllerFile = app_path("Http/Controllers/Api/{$modelName}Controller.php");
         $columns = $this->command->option('columns');
         $columnsArray = $this->parseColumns($columns);
+
+        // Update the controller file
         $this->updateControllerFile($controllerFile, $modelName, $columnsArray);
+    }
+
+    protected function generateResourceFile($modelName): void
+    {
+        $resourceName = "{$modelName}Resource";
+        $this->command->call('make:resource', ['name' => "Http/Resources/{$resourceName}"]);
+
+        $resourceFile = app_path("Http/Resources/{$resourceName}.php");
+
+        if (FileHelper::exists($resourceFile)) {
+            $this->updateResourceFile($resourceFile, $modelName);
+        } else {
+            $this->command->error("Resource file not found: {$resourceFile}");
+        }
+    }
+
+    protected function updateResourceFile($resourceFile, $modelName): void
+    {
+        $content = FileHelper::read($resourceFile);
+        $dynamicResourceNamespace = "Harry\\CrudPackage\\Http\\Resources\\DynamicResource";
+
+        $content = str_replace(
+            "return parent::toArray(\$request);",
+            "return new {$dynamicResourceNamespace}(\$this->resource);",
+            $content
+        );
+
+        FileHelper::write($resourceFile, $content);
     }
 
     protected function updateControllerFile($controllerFile, $modelName, $columnsArray): void
@@ -81,7 +116,7 @@ class ControllerGenerator
         public function index()
         {
             \${$modelName} = {$modelName}::all();
-            return response()->json(\${$modelName});
+            return {$modelName}Resource::collection(\${$modelName});
         }
         ";
     }
@@ -97,7 +132,7 @@ class ControllerGenerator
             ]);
     
             \${$modelName} = {$modelName}::create(\$data);
-            return response()->json(\${$modelName}, 201);
+            return new {$modelName}Resource(\${$modelName});
         }
         ";
     }
@@ -108,7 +143,7 @@ class ControllerGenerator
         public function show(\$id)
         {
             \${$modelName} = {$modelName}::findOrFail(\$id);
-            return response()->json(\${$modelName});
+            return new {$modelName}Resource(\${$modelName});
         }
         ";
     }
@@ -125,7 +160,7 @@ class ControllerGenerator
             ]);
     
             \${$modelName}->update(\$data);
-            return response()->json(\${$modelName});
+            return new {$modelName}Resource(\${$modelName});
         }
         ";
     }
