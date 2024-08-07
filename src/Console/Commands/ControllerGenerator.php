@@ -3,7 +3,7 @@
 namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
-use Hoa\File\File;
+use Harry\CrudPackage\Helpers\ApiResponse;
 
 class ControllerGenerator
 {
@@ -117,8 +117,12 @@ class ControllerGenerator
         return "
         public function index()
         {
-            \${$variableName} = {$modelName}::all();
-            return {$modelName}Resource::collection(\${$variableName});
+            try {
+                \${$variableName} = {$modelName}::all();
+                return ApiResponse::success({$modelName}Resource::collection(\${$variableName}), 'Records retrieved successfully.');
+            } catch (\Exception \$e) {
+                return ApiResponse::error('Failed to retrieve records.', 500, ['error' => \$e->getMessage()]);
+            }
         }
         ";
     }
@@ -130,12 +134,18 @@ class ControllerGenerator
         return "
         public function store(Request \$request)
         {
-            \$data = \$request->validate([
-                $validationRules
-            ]);
+            try {
+                \$data = \$request->validate([
+                    $validationRules
+                ]);
     
-            \${$variableName} = {$modelName}::create(\$data);
-            return new {$modelName}Resource(\${$variableName});
+                \${$variableName} = {$modelName}::create(\$data);
+                return ApiResponse::success(new {$modelName}Resource(\${$variableName}), 'Record created successfully.', 201);
+            } catch (\Illuminate\Validation\ValidationException \$e) {
+                return ApiResponse::error('Validation failed.', 422, \$e->errors());
+            } catch (\Exception \$e) {
+                return ApiResponse::error('Failed to create record.', 500, ['error' => \$e->getMessage()]);
+            }
         }
         ";
     }
@@ -146,8 +156,12 @@ class ControllerGenerator
         return "
         public function show(\$id)
         {
-            \${$variableName} = {$modelName}::findOrFail(\$id);
-            return new {$modelName}Resource(\${$variableName});
+            try {
+                \${$variableName} = {$modelName}::findOrFail(\$id);
+                return ApiResponse::success(new {$modelName}Resource(\${$variableName}), 'Record retrieved successfully.');
+            } catch (\Exception \$e) {
+                return ApiResponse::error('Record not found.', 404, ['error' => \$e->getMessage()]);
+            }
         }
         ";
     }
@@ -159,14 +173,20 @@ class ControllerGenerator
         return "
         public function update(Request \$request, \$id)
         {
-            \${$variableName} = {$modelName}::findOrFail(\$id);
-            
-            \$data = \$request->validate([
-                $validationRules
-            ]);
+            try {
+                \${$variableName} = {$modelName}::findOrFail(\$id);
+                
+                \$data = \$request->validate([
+                    $validationRules
+                ]);
     
-            \${$variableName}->update(\$data);
-            return new {$modelName}Resource(\${$variableName});
+                \${$variableName}->update(\$data);
+                return ApiResponse::success(new {$modelName}Resource(\${$variableName}), 'Record updated successfully.');
+            } catch (\Illuminate\Validation\ValidationException \$e) {
+                return ApiResponse::error('Validation failed.', 422, \$e->errors());
+            } catch (\Exception \$e) {
+                return ApiResponse::error('Failed to update record.', 500, ['error' => \$e->getMessage()]);
+            }
         }
         ";
     }
@@ -177,9 +197,13 @@ class ControllerGenerator
         return "
         public function destroy(\$id)
         {
-            \${$variableName} = {$modelName}::findOrFail(\$id);
-            \${$variableName}->delete();
-            return response()->json(['message' => '{$modelName} deleted successfully']);
+            try {
+                \${$variableName} = {$modelName}::findOrFail(\$id);
+                \${$variableName}->delete();
+                return ApiResponse::success(null, '{$modelName} deleted successfully.');
+            } catch (\Exception \$e) {
+                return ApiResponse::error('Failed to delete record.', 500, ['error' => \$e->getMessage()]);
+            }
         }
         ";
     }
