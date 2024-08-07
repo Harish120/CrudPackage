@@ -66,10 +66,11 @@ class ControllerGenerator
         $controllerContent = file_get_contents($controllerFile);
 
         $modelNamespace = "App\\Models\\{$modelName}";
+        $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
         if (!str_contains($controllerContent, $modelNamespace)) {
             $controllerContent = str_replace(
                 "namespace App\Http\Controllers\Api;",
-                "namespace App\Http\Controllers\Api;\n\nuse {$modelNamespace};",
+                "namespace App\Http\Controllers\Api;\n\nuse {$resourceNamespace};\n\nuse {$modelNamespace};",
                 $controllerContent
             );
         }
