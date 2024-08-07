@@ -36,7 +36,7 @@ class ControllerGenerator
     protected function generateResourceFile($modelName): void
     {
         $resourceName = "{$modelName}Resource";
-        $this->command->call('make:resource', ['name' => "Http/Resources/{$resourceName}"]);
+        $this->command->call('make:resource', ['name' => "{$resourceName}"]);
 
         $resourceFile = app_path("Http/Resources/{$resourceName}.php");
 
