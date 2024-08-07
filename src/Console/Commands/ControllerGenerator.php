@@ -113,11 +113,12 @@ class ControllerGenerator
 
     protected function generateIndexMethod($modelName): string
     {
+        $variableName = strtolower($modelName);
         return "
         public function index()
         {
-            \${$modelName} = {$modelName}::all();
-            return {$modelName}Resource::collection(\${$modelName});
+            \${$variableName} = {$modelName}::all();
+            return {$modelName}Resource::collection(\${$variableName});
         }
         ";
     }
@@ -125,6 +126,7 @@ class ControllerGenerator
     protected function generateStoreMethod($modelName, $columnsArray): string
     {
         $validationRules = $this->generateValidationRules($columnsArray);
+        $variableName = strtolower($modelName);
         return "
         public function store(Request \$request)
         {
@@ -132,19 +134,20 @@ class ControllerGenerator
                 $validationRules
             ]);
     
-            \${$modelName} = {$modelName}::create(\$data);
-            return new {$modelName}Resource(\${$modelName});
+            \${$variableName} = {$modelName}::create(\$data);
+            return new {$modelName}Resource(\${$variableName});
         }
         ";
     }
 
     protected function generateShowMethod($modelName): string
     {
+        $variableName = strtolower($modelName);
         return "
         public function show(\$id)
         {
-            \${$modelName} = {$modelName}::findOrFail(\$id);
-            return new {$modelName}Resource(\${$modelName});
+            \${$variableName} = {$modelName}::findOrFail(\$id);
+            return new {$modelName}Resource(\${$variableName});
         }
         ";
     }
@@ -152,27 +155,29 @@ class ControllerGenerator
     protected function generateUpdateMethod($modelName, $columnsArray): string
     {
         $validationRules = $this->generateValidationRules($columnsArray);
+        $variableName = strtolower($modelName);
         return "
         public function update(Request \$request, \$id)
         {
-            \${$modelName} = {$modelName}::findOrFail(\$id);
             \$data = \$request->validate([
                 $validationRules
             ]);
+            \${$variableName} = {$modelName}::findOrFail(\$id);
     
-            \${$modelName}->update(\$data);
-            return new {$modelName}Resource(\${$modelName});
+            \${$variableName}->update(\$data);
+            return new {$modelName}Resource(\${$variableName});
         }
         ";
     }
 
     protected function generateDestroyMethod($modelName): string
     {
+        $variableName = strtolower($modelName);
         return "
         public function destroy(\$id)
         {
-            \${$modelName} = {$modelName}::findOrFail(\$id);
-            \${$modelName}->delete();
+            \${$variableName} = {$modelName}::findOrFail(\$id);
+            \${$variableName}->delete();
             return response()->json(['message' => '{$modelName} deleted successfully']);
         }
         ";
