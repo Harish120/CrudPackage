@@ -88,7 +88,7 @@ class ControllerGenerator
             'updateValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'update'),
         ];
 
-        $validationMethodsContent = $validationMethods['storeValidationRules'] . "\n    " . $validationMethods['updateValidationRules'];
+        $validationMethodsContent = $validationMethods['constructMethod'] . "\n" . $validationMethods['storeValidationRules'] . "\n" . $validationMethods['updateValidationRules'];
 
         $controllerContent = str_replace(
             "//",
