@@ -14,7 +14,7 @@ class ModelGenerator
         $this->command = $command;
     }
 
-    public function generate($modelName, $columns)
+    public function generate($modelName, $columns): void
     {
         $this->command->call('make:model', [
             'name' => $modelName,
@@ -29,7 +29,7 @@ class ModelGenerator
         }
     }
 
-    protected function updateModelFile($modelFile, $columns)
+    protected function updateModelFile($modelFile, $columns): void
     {
         $fillable = $this->generateFillable($columns);
 
@@ -39,7 +39,7 @@ class ModelGenerator
         File::put($modelFile, $content);
     }
 
-    protected function generateFillable($columns)
+    protected function generateFillable($columns): string
     {
         $columnsArray = explode(',', $columns);
         $fillableArray = array_map(function ($column) {

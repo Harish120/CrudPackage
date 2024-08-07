@@ -12,7 +12,7 @@ class CrudCommand extends Command
     protected $signature = 'crud:generate {model} {--columns=}';
     protected $description = 'Generate CRUD operations for a specified model';
 
-    public function handle()
+    public function handle(): void
     {
         $modelName = $this->argument('model');
         $columns = $this->option('columns');

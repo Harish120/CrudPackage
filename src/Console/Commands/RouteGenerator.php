@@ -13,7 +13,7 @@ class RouteGenerator
         $this->command = $command;
     }
 
-    public function generate($modelName)
+    public function generate($modelName): void
     {
         $controllerNamespace = "App\\Http\\Controllers\\Api\\{$modelName}Controller";
         $route = "Route::apiResource('".strtolower(Str::plural($modelName))."', '{$controllerNamespace}');";

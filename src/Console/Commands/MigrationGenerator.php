@@ -14,7 +14,7 @@ class MigrationGenerator
         $this->command = $command;
     }
 
-    public function generate($modelName)
+    public function generate($modelName): void
     {
         $tableName = Str::plural(strtolower($modelName));
         $migrationName = "create_{$tableName}_table";
@@ -29,13 +29,13 @@ class MigrationGenerator
         }
     }
 
-    protected function getMigrationFile($migrationName)
+    protected function getMigrationFile($migrationName): string
     {
         $timestamp = date('Y_m_d_His');
         return database_path("migrations/{$timestamp}_{$migrationName}.php");
     }
 
-    protected function updateMigrationFile($migrationFile, $columns)
+    protected function updateMigrationFile($migrationFile, $columns): void
     {
         $migrationContent = file_get_contents($migrationFile);
         $columnDefinitions = '';

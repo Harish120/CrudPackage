@@ -13,7 +13,7 @@ class ControllerGenerator
         $this->command = $command;
     }
 
-    public function generate($modelName)
+    public function generate($modelName): void
     {
         $this->command->call('make:controller', [
             'name' => "Api/{$modelName}Controller",
@@ -26,7 +26,7 @@ class ControllerGenerator
         $this->updateControllerFile($controllerFile, $modelName, $columnsArray);
     }
 
-    protected function updateControllerFile($controllerFile, $modelName, $columnsArray)
+    protected function updateControllerFile($controllerFile, $modelName, $columnsArray): void
     {
         $controllerContent = file_get_contents($controllerFile);
 
@@ -48,7 +48,7 @@ class ControllerGenerator
         FileHelper::write($controllerFile, $controllerContent);
     }
 
-    protected function parseColumns($columns)
+    protected function parseColumns($columns): array
     {
         $columnArray = explode(',', $columns);
         $columnsArray = [];
@@ -64,7 +64,7 @@ class ControllerGenerator
         return $columnsArray;
     }
 
-    protected function replaceOrAddMethod($controllerContent, $methodName, $methodContent)
+    protected function replaceOrAddMethod($controllerContent, $methodName, $methodContent): array|string|null
     {
         $pattern = "/public function {$methodName}\(.*?\{(.*?)\}/s";
         if (preg_match($pattern, $controllerContent)) {
@@ -75,7 +75,7 @@ class ControllerGenerator
         return $controllerContent;
     }
 
-    protected function generateIndexMethod($modelName)
+    protected function generateIndexMethod($modelName): string
     {
         return "
         public function index()
@@ -86,7 +86,7 @@ class ControllerGenerator
         ";
     }
 
-    protected function generateStoreMethod($modelName, $columnsArray)
+    protected function generateStoreMethod($modelName, $columnsArray): string
     {
         $validationRules = $this->generateValidationRules($columnsArray);
         return "
@@ -102,7 +102,7 @@ class ControllerGenerator
         ";
     }
 
-    protected function generateShowMethod($modelName)
+    protected function generateShowMethod($modelName): string
     {
         return "
         public function show(\$id)
@@ -113,7 +113,7 @@ class ControllerGenerator
         ";
     }
 
-    protected function generateUpdateMethod($modelName, $columnsArray)
+    protected function generateUpdateMethod($modelName, $columnsArray): string
     {
         $validationRules = $this->generateValidationRules($columnsArray);
         return "
@@ -130,7 +130,7 @@ class ControllerGenerator
         ";
     }
 
-    protected function generateDestroyMethod($modelName)
+    protected function generateDestroyMethod($modelName): string
     {
         return "
         public function destroy(\$id)
@@ -142,7 +142,7 @@ class ControllerGenerator
         ";
     }
 
-    protected function generateValidationRules($columnsArray)
+    protected function generateValidationRules($columnsArray): string
     {
         $rules = [];
         foreach ($columnsArray as $column) {
