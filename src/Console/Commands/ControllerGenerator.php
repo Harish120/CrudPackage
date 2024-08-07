@@ -17,8 +17,7 @@ class ControllerGenerator
     public function generate($modelName): void
     {
         $this->command->call('make:controller', [
-            'name' => "Api/{$modelName}Controller",
-            '--api' => true,
+            'name' => "Api/{$modelName}Controller"
         ]);
 
         // Generate the resource file
@@ -68,7 +67,7 @@ class ControllerGenerator
         $modelNamespace = "App\\Models\\{$modelName}";
         $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
         $apiResponseNamespace = "Harry\\CrudPackage\\Helpers\\ApiResponse";
-        $baseControllerNamespace = "App\\Http\\Controllers\\Api\\BaseController";
+        $baseControllerNamespace = "Harry\\CrudPackage\\Helpers\\BaseController";
         if (!str_contains($controllerContent, $modelNamespace)) {
             $controllerContent = str_replace(
                 "namespace App\Http\Controllers\Api;",
@@ -98,6 +97,9 @@ class ControllerGenerator
                 $controllerContent .= "\n\n" . $methodContent;
             }
         }
+
+        $lastBracketPos = strrpos($controllerContent, '}');
+        $controllerContent = substr_replace($controllerContent, "\n\n" . implode("\n\n", $validationMethods), $lastBracketPos, 0);
 
         FileHelper::write($controllerFile, $controllerContent);
     }
