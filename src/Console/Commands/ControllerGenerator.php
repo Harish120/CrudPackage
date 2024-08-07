@@ -89,17 +89,23 @@ class ControllerGenerator
             'updateValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'update'),
         ];
 
+        $replacedDefaultComment = false;
         foreach ($validationMethods as $methodName => $methodContent) {
             $pattern = "/public function {$methodName}\(.*?\{(.*?)\}/s";
             if (preg_match($pattern, $controllerContent)) {
                 $controllerContent = preg_replace($pattern, $methodContent, $controllerContent);
             } else {
+                if (!$replacedDefaultComment) {
+                    $controllerContent = str_replace(
+                        "//",
+                        $methodContent,
+                        $controllerContent
+                    );
+                    $replacedDefaultComment = true;
+                }
                 $controllerContent .= "\n\n" . $methodContent;
             }
         }
-
-        $lastBracketPos = strrpos($controllerContent, '}');
-        $controllerContent = substr_replace($controllerContent, "\n\n" . implode("\n\n", $validationMethods), $lastBracketPos, 0);
 
         FileHelper::write($controllerFile, $controllerContent);
     }
