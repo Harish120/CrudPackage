@@ -54,7 +54,7 @@ class ControllerGenerator
 
         $content = str_replace(
             "return parent::toArray(\$request);",
-            "return new {$dynamicResourceNamespace}(\$this->resource);",
+            "return (new {$dynamicResourceNamespace}(\$this->resource))->toArray(\$request);",
             $content
         );
 
