@@ -68,19 +68,23 @@ class ControllerGenerator
         $modelNamespace = "App\\Models\\{$modelName}";
         $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
         $apiResponseNamespace = "Harry\\CrudPackage\\Helpers\\ApiResponse";
+        $baseControllerNamespace = "App\\Http\\Controllers\\Api\\BaseController";
         if (!str_contains($controllerContent, $modelNamespace)) {
             $controllerContent = str_replace(
                 "namespace App\Http\Controllers\Api;",
-                "namespace App\Http\Controllers\Api;\n\nuse {$resourceNamespace};\nuse {$apiResponseNamespace};\nuse {$modelNamespace};",
+                "namespace App\Http\Controllers\Api;\n\nuse {$resourceNamespace};\nuse {$apiResponseNamespace};\nuse {$modelNamespace};\nuse {$baseControllerNamespace};",
                 $controllerContent
             );
         }
 
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'index', $this->generateIndexMethod($modelName));
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'store', $this->generateStoreMethod($modelName, $columnsArray));
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'show', $this->generateShowMethod($modelName));
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'update', $this->generateUpdateMethod($modelName, $columnsArray));
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'destroy', $this->generateDestroyMethod($modelName));
+        $controllerContent = str_replace(
+            "extends Controller",
+            "extends BaseController",
+            $controllerContent
+        );
+
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'storeValidationRules', $this->generateValidationRulesMethod($columnsArray, 'store'));
+        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'updateValidationRules', $this->generateValidationRulesMethod($columnsArray, 'update'));
 
         FileHelper::write($controllerFile, $controllerContent);
     }
@@ -112,108 +116,28 @@ class ControllerGenerator
         return $controllerContent;
     }
 
-    protected function generateIndexMethod($modelName): string
+    protected function generateValidationRulesMethod($columnsArray, $type): string
     {
-        $variableName = strtolower($modelName);
+        $validationRules = $this->generateValidationRules($columnsArray, $type);
         return "
-        public function index()
+        protected function {$type}ValidationRules(): array
         {
-            try {
-                \${$variableName} = {$modelName}::all();
-                return ApiResponse::success({$modelName}Resource::collection(\${$variableName}), 'Records retrieved successfully.');
-            } catch (\Exception \$e) {
-                return ApiResponse::error('Failed to retrieve records.', 500, ['error' => \$e->getMessage()]);
-            }
+            return [
+                $validationRules
+            ];
         }
         ";
     }
 
-    protected function generateStoreMethod($modelName, $columnsArray): string
-    {
-        $validationRules = $this->generateValidationRules($columnsArray);
-        $variableName = strtolower($modelName);
-        return "
-        public function store(Request \$request)
-        {
-            try {
-                \$data = \$request->validate([
-                    $validationRules
-                ]);
-    
-                \${$variableName} = {$modelName}::create(\$data);
-                return ApiResponse::success(new {$modelName}Resource(\${$variableName}), 'Record created successfully.', 201);
-            } catch (\Illuminate\Validation\ValidationException \$e) {
-                return ApiResponse::error('Validation failed.', 422, \$e->errors());
-            } catch (\Exception \$e) {
-                return ApiResponse::error('Failed to create record.', 500, ['error' => \$e->getMessage()]);
-            }
-        }
-        ";
-    }
-
-    protected function generateShowMethod($modelName): string
-    {
-        $variableName = strtolower($modelName);
-        return "
-        public function show(\$id)
-        {
-            try {
-                \${$variableName} = {$modelName}::findOrFail(\$id);
-                return ApiResponse::success(new {$modelName}Resource(\${$variableName}), 'Record retrieved successfully.');
-            } catch (\Exception \$e) {
-                return ApiResponse::error('Record not found.', 404, ['error' => \$e->getMessage()]);
-            }
-        }
-        ";
-    }
-
-    protected function generateUpdateMethod($modelName, $columnsArray): string
-    {
-        $validationRules = $this->generateValidationRules($columnsArray);
-        $variableName = strtolower($modelName);
-        return "
-        public function update(Request \$request, \$id)
-        {
-            try {
-                \${$variableName} = {$modelName}::findOrFail(\$id);
-                
-                \$data = \$request->validate([
-                    $validationRules
-                ]);
-    
-                \${$variableName}->update(\$data);
-                return ApiResponse::success(new {$modelName}Resource(\${$variableName}), 'Record updated successfully.');
-            } catch (\Illuminate\Validation\ValidationException \$e) {
-                return ApiResponse::error('Validation failed.', 422, \$e->errors());
-            } catch (\Exception \$e) {
-                return ApiResponse::error('Failed to update record.', 500, ['error' => \$e->getMessage()]);
-            }
-        }
-        ";
-    }
-
-    protected function generateDestroyMethod($modelName): string
-    {
-        $variableName = strtolower($modelName);
-        return "
-        public function destroy(\$id)
-        {
-            try {
-                \${$variableName} = {$modelName}::findOrFail(\$id);
-                \${$variableName}->delete();
-                return ApiResponse::success(null, '{$modelName} deleted successfully.');
-            } catch (\Exception \$e) {
-                return ApiResponse::error('Failed to delete record.', 500, ['error' => \$e->getMessage()]);
-            }
-        }
-        ";
-    }
-
-    protected function generateValidationRules($columnsArray): string
+    protected function generateValidationRules($columnsArray, $type): string
     {
         $rules = [];
         foreach ($columnsArray as $column) {
-            $rules[$column['name']] = $column['nullable'] ? 'nullable' : 'required';
+            if ($type === 'store') {
+                $rules[$column['name']] = $column['nullable'] ? 'nullable' : 'required';
+            } elseif ($type === 'update') {
+                $rules[$column['name']] = $column['nullable'] ? 'nullable' : 'sometimes|required';
+            }
         }
 
         return implode(', ', array_map(function($key) use ($rules) {

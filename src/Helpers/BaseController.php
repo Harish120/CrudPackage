@@ -7,6 +7,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as LaravelBaseController;
+use Harry\CrudPackage\Helpers\ApiResponse;
 
 class BaseController extends LaravelBaseController
 {
@@ -23,41 +24,71 @@ class BaseController extends LaravelBaseController
 
     public function index()
     {
-        $items = $this->model::all();
-        return $this->resource::collection($items);
+        try {
+            $items = $this->model::all();
+            return ApiResponse::success($this->resource::collection($items), 'Records retrieved successfully.');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to retrieve records.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate($this->validationRules());
-        $item = $this->model::create($data);
-        return new $this->resource($item);
+        try {
+            $data = $request->validate($this->validationRules());
+            $item = $this->model::create($data);
+            return ApiResponse::success(new $this->resource($item), 'Record created successfully.', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error('Validation failed.', 422, $e->errors());
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to create record.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
     public function show($id)
     {
-        $item = $this->model::findOrFail($id);
-        return new $this->resource($item);
+        try {
+            $item = $this->model::findOrFail($id);
+            return ApiResponse::success(new $this->resource($item), 'Record retrieved successfully.');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Record not found.', 404, ['error' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $item = $this->model::findOrFail($id);
-        $data = $request->validate($this->validationRules());
-        $item->update($data);
-        return new $this->resource($item);
+        try {
+            $item = $this->model::findOrFail($id);
+            $data = $request->validate($this->validationRules());
+            $item->update($data);
+            return ApiResponse::success(new $this->resource($item), 'Record updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error('Validation failed.', 422, $e->errors());
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to update record.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
     public function destroy($id)
     {
-        $item = $this->model::findOrFail($id);
-        $item->delete();
-        return response()->json(['message' => 'Deleted successfully']);
+        try {
+            $item = $this->model::findOrFail($id);
+            $item->delete();
+            return ApiResponse::success(null, 'Record deleted successfully.');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to delete record.', 500, ['error' => $e->getMessage()]);
+        }
     }
 
-    protected function validationRules()
+    protected function storeValidationRules(): array
     {
-        // Define validation rules here or override in extended controllers
+        // This should be overridden in specific controllers if needed
+        return [];
+    }
+
+    protected function updateValidationRules(): array
+    {
+        // This should be overridden in specific controllers if needed
         return [];
     }
 }
