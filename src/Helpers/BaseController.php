@@ -35,7 +35,7 @@ class BaseController extends LaravelBaseController
     public function store(Request $request)
     {
         try {
-            $data = $request->validate($this->validationRules());
+            $data = $request->validate($this->storeValidationRules());
             $item = $this->model::create($data);
             return ApiResponse::success(new $this->resource($item), 'Record created successfully.', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -59,7 +59,7 @@ class BaseController extends LaravelBaseController
     {
         try {
             $item = $this->model::findOrFail($id);
-            $data = $request->validate($this->validationRules());
+            $data = $request->validate($this->updateValidationRules());
             $item->update($data);
             return ApiResponse::success(new $this->resource($item), 'Record updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {

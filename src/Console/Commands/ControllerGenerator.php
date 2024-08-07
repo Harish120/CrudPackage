@@ -129,7 +129,11 @@ class ControllerGenerator
     protected function generateConstructorMethod($modelName): string
     {
         return "
-    public function __construct($modelName)
+    /**
+     * Controller constructor.
+     * Calls the parent constructor and passes the model and resource class names.
+     */
+    public function __construct()
     {
         parent::__construct({$modelName}::class, {$modelName}Resource::class);
     }
@@ -140,6 +144,12 @@ class ControllerGenerator
     {
         $validationRules = $this->generateValidationRules($columnsArray, $type);
         return "
+    /**
+     * Validation rules for the {$type} operation.
+     * Defines the rules for the incoming request data.
+     *
+     * @return array An array of validation rules.
+     */
     public function {$type}ValidationRules(): array
     {
         return [
