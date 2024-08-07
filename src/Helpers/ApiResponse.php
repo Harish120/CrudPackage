@@ -9,12 +9,12 @@ class ApiResponse
     /**
      * Return a success response.
      *
-     * @param mixed $data
+     * @param mixed|null $data
      * @param string $message
      * @param int $statusCode
      * @return JsonResponse
      */
-    public static function success($data = null, $message = 'Success', $statusCode = 200): JsonResponse
+    public static function success(mixed $data = null, string $message = 'Success', int $statusCode = 200): JsonResponse
     {
         return response()->json([
             'success' => true,
@@ -31,7 +31,7 @@ class ApiResponse
      * @param array $errors
      * @return JsonResponse
      */
-    public static function error($message = 'Error', $statusCode = 400, $errors = []): JsonResponse
+    public static function error(string $message = 'Error', int $statusCode = 400, array $errors = []): JsonResponse
     {
         return response()->json([
             'success' => false,
