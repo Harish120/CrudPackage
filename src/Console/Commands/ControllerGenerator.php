@@ -18,7 +18,7 @@ class ControllerGenerator
     {
         $this->command->call('make:controller', [
             'name' => "Api/{$modelName}Controller",
-            '--plain' => true,
+            '--api' => true,
         ]);
 
         // Generate the resource file
@@ -82,6 +82,8 @@ class ControllerGenerator
             "extends BaseController",
             $controllerContent
         );
+
+        $controllerContent = preg_replace('/public function (index|store|show|update|destroy)\(.*?\}\s*/s', '', $controllerContent);
 
         $validationMethods = [
             'storeValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'store'),
