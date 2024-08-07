@@ -159,10 +159,11 @@ class ControllerGenerator
         return "
         public function update(Request \$request, \$id)
         {
+            \${$variableName} = {$modelName}::findOrFail(\$id);
+            
             \$data = \$request->validate([
                 $validationRules
             ]);
-            \${$variableName} = {$modelName}::findOrFail(\$id);
     
             \${$variableName}->update(\$data);
             return new {$modelName}Resource(\${$variableName});
