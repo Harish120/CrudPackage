@@ -50,7 +50,7 @@ class ControllerGenerator
     protected function updateResourceFile($resourceFile, $modelName): void
     {
         $content = FileHelper::read($resourceFile);
-        $dynamicResourceNamespace = "Harry\\CrudPackage\\Http\\Resources\\DynamicResource";
+        $dynamicResourceNamespace = "\\Harry\\CrudPackage\\Http\\Resources\\DynamicResource";
 
         $content = str_replace(
             "return parent::toArray(\$request);",
