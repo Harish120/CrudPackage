@@ -83,11 +83,12 @@ class ControllerGenerator
         );
 
         $validationMethods = [
+            'constructMethod' => $this->generateConstructorMethod($modelName),
             'storeValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'store'),
             'updateValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'update'),
         ];
 
-        $validationMethodsContent = $validationMethods['storeValidationRules'] . "\n\n" . $validationMethods['updateValidationRules'];
+        $validationMethodsContent = $validationMethods['storeValidationRules'] . "\n    " . $validationMethods['updateValidationRules'];
 
         $controllerContent = str_replace(
             "//",
@@ -125,16 +126,26 @@ class ControllerGenerator
         return $controllerContent;
     }
 
+    protected function generateConstructorMethod($modelName): string
+    {
+        return "
+    public function __construct($modelName)
+    {
+        parent::__construct({$modelName}::class, {$modelName}Resource::class);
+    }
+        ";
+    }
+
     protected function generateValidationRulesMethod($columnsArray, $type): string
     {
         $validationRules = $this->generateValidationRules($columnsArray, $type);
         return "
-        public function {$type}ValidationRules(): array
-        {
-            return [
-                $validationRules
-            ];
-        }
+    public function {$type}ValidationRules(): array
+    {
+        return [
+            $validationRules
+        ];
+    }
         ";
     }
 
