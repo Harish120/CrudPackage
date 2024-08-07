@@ -18,7 +18,7 @@ class ControllerGenerator
     {
         $this->command->call('make:controller', [
             'name' => "Api/{$modelName}Controller",
-            '--api' => true,
+            '--plain' => true,
         ]);
 
         // Generate the resource file
@@ -83,8 +83,19 @@ class ControllerGenerator
             $controllerContent
         );
 
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'storeValidationRules', $this->generateValidationRulesMethod($columnsArray, 'store'));
-        $controllerContent = $this->replaceOrAddMethod($controllerContent, 'updateValidationRules', $this->generateValidationRulesMethod($columnsArray, 'update'));
+        $validationMethods = [
+            'storeValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'store'),
+            'updateValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'update'),
+        ];
+
+        foreach ($validationMethods as $methodName => $methodContent) {
+            $pattern = "/public function {$methodName}\(.*?\{(.*?)\}/s";
+            if (preg_match($pattern, $controllerContent)) {
+                $controllerContent = preg_replace($pattern, $methodContent, $controllerContent);
+            } else {
+                $controllerContent .= "\n\n" . $methodContent;
+            }
+        }
 
         FileHelper::write($controllerFile, $controllerContent);
     }
@@ -120,7 +131,7 @@ class ControllerGenerator
     {
         $validationRules = $this->generateValidationRules($columnsArray, $type);
         return "
-        protected function {$type}ValidationRules(): array
+        public function {$type}ValidationRules(): array
         {
             return [
                 $validationRules
