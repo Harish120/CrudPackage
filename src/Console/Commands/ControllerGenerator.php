@@ -3,7 +3,7 @@
 namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
-use Harry\CrudPackage\Helpers\ApiResponse;
+use Illuminate\Support\Str;
 
 class ControllerGenerator
 {
@@ -16,20 +16,11 @@ class ControllerGenerator
 
     public function generate($modelName): void
     {
-        $this->command->call('make:controller', [
-            'name' => "Api/{$modelName}Controller"
-        ]);
-
         // Generate the resource file
         $this->generateResourceFile($modelName);
 
-        // Get the controller file path
-        $controllerFile = app_path("Http/Controllers/Api/{$modelName}Controller.php");
-        $columns = $this->command->option('columns');
-        $columnsArray = $this->parseColumns($columns);
-
-        // Update the controller file
-        $this->updateControllerFile($controllerFile, $modelName, $columnsArray);
+        // Generate the controller file using the stub
+        $this->generateControllerFile($modelName);
     }
 
     protected function generateResourceFile($modelName): void
@@ -60,43 +51,29 @@ class ControllerGenerator
         FileHelper::write($resourceFile, $content);
     }
 
-    protected function updateControllerFile($controllerFile, $modelName, $columnsArray): void
+    protected function generateControllerFile($modelName): void
     {
-        $controllerContent = file_get_contents($controllerFile);
+        // Get the stub content
+        $stubPath = base_path('stubs/controller.stub');
+        $controllerStubContent = FileHelper::read($stubPath);
 
-        $modelNamespace = "App\\Models\\{$modelName}";
-        $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
-        $apiResponseNamespace = "Harry\\CrudPackage\\Helpers\\ApiResponse";
-        $baseControllerNamespace = "Harry\\CrudPackage\\Helpers\\BaseController";
-        if (!str_contains($controllerContent, $modelNamespace)) {
-            $controllerContent = str_replace(
-                "namespace App\Http\Controllers\Api;",
-                "namespace App\Http\Controllers\Api;\n\nuse {$resourceNamespace};\nuse {$apiResponseNamespace};\nuse {$modelNamespace};\nuse {$baseControllerNamespace};",
-                $controllerContent
-            );
-        }
+        // Parse columns
+        $columns = $this->command->option('columns');
+        $columnsArray = $this->parseColumns($columns);
 
+        // Prepare dynamic replacements
+        $replacements = $this->getReplacements($modelName, $columnsArray);
+
+        // Replace placeholders in the stub
         $controllerContent = str_replace(
-            "extends Controller",
-            "extends BaseController",
-            $controllerContent
+            array_keys($replacements),
+            array_values($replacements),
+            $controllerStubContent
         );
 
-        $validationMethods = [
-            'constructMethod' => $this->generateConstructorMethod($modelName),
-            'storeValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'store'),
-            'updateValidationRules' => $this->generateValidationRulesMethod($columnsArray, 'update'),
-        ];
-
-        $validationMethodsContent = $validationMethods['constructMethod'] . "\n" . $validationMethods['storeValidationRules'] . "\n" . $validationMethods['updateValidationRules'];
-
-        $controllerContent = str_replace(
-            "//",
-            $validationMethodsContent,
-            $controllerContent
-        );
-
-        FileHelper::write($controllerFile, $controllerContent);
+        // Write the controller file
+        $controllerFilePath = app_path("Http/Controllers/Api/{$modelName}Controller.php");
+        FileHelper::write($controllerFilePath, $controllerContent);
     }
 
     protected function parseColumns($columns): array
@@ -115,48 +92,20 @@ class ControllerGenerator
         return $columnsArray;
     }
 
-    protected function replaceOrAddMethod($controllerContent, $methodName, $methodContent): array|string|null
+    protected function getReplacements($modelName, $columnsArray): array
     {
-        $pattern = "/public function {$methodName}\(.*?\{(.*?)\}/s";
-        if (preg_match($pattern, $controllerContent)) {
-            $controllerContent = preg_replace($pattern, $methodContent, $controllerContent);
-        } else {
-            $controllerContent .= $methodContent;
-        }
-        return $controllerContent;
-    }
+        $modelNamespace = "App\\Models\\{$modelName}";
+        $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
 
-    protected function generateConstructorMethod($modelName): string
-    {
-        return "
-    /**
-     * Controller constructor.
-     * Calls the parent constructor and passes the model and resource class names.
-     */
-    public function __construct()
-    {
-        parent::__construct({$modelName}::class, {$modelName}Resource::class);
-    }
-        ";
-    }
-
-    protected function generateValidationRulesMethod($columnsArray, $type): string
-    {
-        $validationRules = $this->generateValidationRules($columnsArray, $type);
-        return "
-    /**
-     * Validation rules for the {$type} operation.
-     * Defines the rules for the incoming request data.
-     *
-     * @return array An array of validation rules.
-     */
-    public function {$type}ValidationRules(): array
-    {
         return [
-            $validationRules
+            '{{ modelNamespace }}' => $modelNamespace,
+            '{{ resourceNamespace }}' => $resourceNamespace,
+            '{{ controllerName }}' => "{$modelName}Controller",
+            '{{ modelName }}' => $modelName,
+            '{{ resourceName }}' => "{$modelName}Resource",
+            '{{ storeValidationRules }}' => $this->generateValidationRules($columnsArray, 'store'),
+            '{{ updateValidationRules }}' => $this->generateValidationRules($columnsArray, 'update'),
         ];
-    }
-        ";
     }
 
     protected function generateValidationRules($columnsArray, $type): string

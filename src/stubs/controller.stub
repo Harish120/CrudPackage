@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use {{ modelNamespace }};
+use {{ resourceNamespace }};
+use Harry\CrudPackage\Helpers\ApiResponse;
+use Harry\CrudPackage\Helpers\BaseController;
+
+class {{ controllerName }} extends BaseController
+{
+    /**
+     * Constructor to bind the model and resource class to the BaseController.
+     */
+    public function __construct()
+    {
+        parent::__construct({{ modelName }}::class, {{ resourceName }}::class);
+    }
+
+    /**
+     * Validation rules for storing a new resource.
+     *
+     * @return array
+     */
+    public function storeValidationRules(): array
+    {
+        return [
+            {{ storeValidationRules }}
+        ];
+    }
+
+    /**
+     * Validation rules for updating an existing resource.
+     *
+     * @return array
+     */
+    public function updateValidationRules(): array
+    {
+        return [
+            {{ updateValidationRules }}
+        ];
+    }
+}

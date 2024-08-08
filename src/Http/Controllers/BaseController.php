@@ -1,13 +1,13 @@
 <?php
 
-namespace Harry\CrudPackage\Helpers;
+namespace Harry\CrudPackage\Http\Controllers;
 
+use Harry\CrudPackage\Helpers\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as LaravelBaseController;
-use Harry\CrudPackage\Helpers\ApiResponse;
 
 class BaseController extends LaravelBaseController
 {
