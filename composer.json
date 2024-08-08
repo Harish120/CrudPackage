@@ -11,7 +11,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Harry\\CrudPackage\\Tests\\": "Tests/"
+      "Harry\\CrudPackage\\Tests\\": "tests/"
     }
   },
   "authors": [
