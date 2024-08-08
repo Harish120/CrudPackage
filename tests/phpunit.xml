@@ -7,7 +7,7 @@
 
     <testsuites>
         <testsuite name="CrudPackage Test Suite">
-            <directory suffix="Test.php">./Tests</directory>
+            <directory suffix="test.php">./tests</directory>
         </testsuite>
     </testsuites>
 
