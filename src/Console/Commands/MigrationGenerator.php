@@ -61,13 +61,21 @@ class MigrationGenerator
             $name = $parts[0];
             $type = $parts[1];
             $nullable = false;
+            $hasDefaultValue = false;
+            $defaultValue = 0;
 
-            if (str_ends_with($type, '?')) {
+            if (Str::endsWith($type, '?')) {
                 $nullable = true;
                 $type = rtrim($type, '?');
+            } else if(Str::contains($type, '*')) {
+                $defaultString = explode('*', $type);
+                $type = $defaultString[0];
+                $defaultValue = $defaultString[1];
+                $hasDefaultValue = true;
             }
             $nullableDefinition = $nullable ? '->nullable()' : '';
-            $columnDefinitions .= "\$table->$type('$name'){$nullableDefinition};\n\t\t\t";
+            $defaultDefinition = $hasDefaultValue ? "->default('{$defaultValue}')" : '';
+            $columnDefinitions .= "\$table->$type('$name'){$nullableDefinition}{$defaultDefinition};\n\t\t\t";
         }
 
         return $columnDefinitions;
