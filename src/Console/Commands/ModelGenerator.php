@@ -20,7 +20,7 @@ class ModelGenerator
 
         // Check if the stub exists
         if (!FileHelper::exists($stubPath)) {
-            $this->command->error("Model stub file not found: {$stubPath}");
+            $this->command->error("    Model stub file not found: {$stubPath}");
             return;
         }
 
@@ -41,7 +41,7 @@ class ModelGenerator
         $modelFile = app_path("Models/{$modelName}.php");
 
         FileHelper::write($modelFile, $modelContent);
-        $this->command->info("Model [{$modelFile}] created successfully.");
+        $this->command->info("    Model [{$modelFile}] created successfully.");
     }
 
     protected function generateFillable($columns): string

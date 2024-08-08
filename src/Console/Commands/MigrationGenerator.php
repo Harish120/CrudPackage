@@ -28,7 +28,7 @@ class MigrationGenerator
 
         // Check if the stub exists
         if (!FileHelper::exists($stubPath)) {
-            $this->command->error("Migration stub file not found: {$stubPath}");
+            $this->command->error("    Migration stub file not found: {$stubPath}");
             return;
         }
 
@@ -48,7 +48,7 @@ class MigrationGenerator
         // Write the new migration file
         FileHelper::write($migrationFilePath, $migrationContent);
 
-        $this->command->info("Migration [{$migrationFilePath}] created successfully.");
+        $this->command->info("    Migration [{$migrationFilePath}] created successfully.");
     }
 
     protected function generateColumnDefinitions($columns): string

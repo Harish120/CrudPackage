@@ -3,7 +3,9 @@
 namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Output\NullOutput;
 
 class ControllerGenerator
 {
@@ -26,16 +28,17 @@ class ControllerGenerator
     protected function generateResourceFile($modelName): void
     {
         $resourceName = "{$modelName}Resource";
-        $this->command->call('make:resource', ['name' => "{$resourceName}"], ['quiet' => true]);
+//        $this->command->call('make:resource', ['name' => "{$resourceName}"], ['quiet' => true]);
+        Artisan::call('make:resource', ['name' => $resourceName], new NullOutput());
 
         $resourceFile = app_path("Http/Resources/{$resourceName}.php");
 
         if (FileHelper::exists($resourceFile)) {
             $this->updateResourceFile($resourceFile);
 
-            $this->command->info("Resource [{$resourceFile}] created successfully.");
+            $this->command->info("    Resource [{$resourceFile}] created successfully.");
         } else {
-            $this->command->error("Resource file not found: {$resourceFile}");
+            $this->command->error("    Resource file not found: {$resourceFile}");
         }
     }
 
@@ -76,7 +79,7 @@ class ControllerGenerator
         // Write the controller file
         $controllerFilePath = app_path("Http/Controllers/Api/{$modelName}Controller.php");
         FileHelper::write($controllerFilePath, $controllerContent);
-        $this->command->info("Controller [{$controllerFilePath}] created successfully.");
+        $this->command->info("    Controller [{$controllerFilePath}] created successfully.");
     }
 
     protected function parseColumns($columns): array

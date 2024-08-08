@@ -17,6 +17,7 @@ class CrudCommand extends Command
         $modelName = $this->argument('model');
         $columns = $this->option('columns');
         $this->info("Generating CRUD for model: $modelName");
+        $this->info("");
 
         $modelGenerator = new ModelGenerator($this);
         $modelGenerator->generate($modelName, $columns);
@@ -30,6 +31,7 @@ class CrudCommand extends Command
         $routeGenerator = new RouteGenerator($this);
         $routeGenerator->generate($modelName);
 
+        $this->info("");
         $this->info("CRUD generation for $modelName complete.");
     }
 }
