@@ -3,7 +3,6 @@
 namespace Harry\CrudPackage\Console\Commands;
 
 use Harry\CrudPackage\Helpers\FileHelper;
-use Illuminate\Support\Facades\File;
 
 class ModelGenerator
 {
@@ -16,27 +15,33 @@ class ModelGenerator
 
     public function generate($modelName, $columns): void
     {
-        $this->command->call('make:model', [
-            'name' => $modelName,
-        ]);
+        // Path to the stub
+        $stubPath = __DIR__ . '/../../stubs/model.stub';
 
-        $modelFile = app_path("Models/{$modelName}.php");
-
-        if (File::exists($modelFile)) {
-            $this->updateModelFile($modelFile, $columns);
-        } else {
-            $this->command->error("Model file not found: {$modelFile}");
+        // Check if the stub exists
+        if (!FileHelper::exists($stubPath)) {
+            $this->command->error("Model stub file not found: {$stubPath}");
+            return;
         }
-    }
 
-    protected function updateModelFile($modelFile, $columns): void
-    {
+        // Get the stub content
+        $stubContent = FileHelper::read($stubPath);
+
+        // Generate fillable array
         $fillable = $this->generateFillable($columns);
 
-        $content = File::get($modelFile);
-        $content = str_replace('use HasFactory;', "use HasFactory;\n\n    protected \$fillable = {$fillable};", $content);
+        // Replace placeholders in the stub
+        $modelContent = str_replace(
+            ['{{ modelName }}', '{{ fillable }}'],
+            [$modelName, $fillable],
+            $stubContent
+        );
 
-        File::put($modelFile, $content);
+        // Write the new model file
+        $modelFile = app_path("Models/{$modelName}.php");
+
+        FileHelper::write($modelFile, $modelContent);
+        $this->command->info("Model [{$modelFile}] created successfully.");
     }
 
     protected function generateFillable($columns): string

@@ -31,13 +31,13 @@ class ControllerGenerator
         $resourceFile = app_path("Http/Resources/{$resourceName}.php");
 
         if (FileHelper::exists($resourceFile)) {
-            $this->updateResourceFile($resourceFile, $modelName);
+            $this->updateResourceFile($resourceFile);
         } else {
             $this->command->error("Resource file not found: {$resourceFile}");
         }
     }
 
-    protected function updateResourceFile($resourceFile, $modelName): void
+    protected function updateResourceFile($resourceFile): void
     {
         $content = FileHelper::read($resourceFile);
         $dynamicResourceNamespace = "\\Harry\\CrudPackage\\Http\\Resources\\DynamicResource";
@@ -54,7 +54,7 @@ class ControllerGenerator
     protected function generateControllerFile($modelName): void
     {
         // Get the stub content
-        $stubPath = base_path('stubs/controller.stub');
+        $stubPath = __DIR__ . '/../../stubs/controller.stub';
         $controllerStubContent = FileHelper::read($stubPath);
 
         // Parse columns
@@ -74,6 +74,7 @@ class ControllerGenerator
         // Write the controller file
         $controllerFilePath = app_path("Http/Controllers/Api/{$modelName}Controller.php");
         FileHelper::write($controllerFilePath, $controllerContent);
+        $this->command->info("Controller [{$controllerFilePath}] created successfully.");
     }
 
     protected function parseColumns($columns): array
