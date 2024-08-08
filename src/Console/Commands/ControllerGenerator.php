@@ -26,12 +26,14 @@ class ControllerGenerator
     protected function generateResourceFile($modelName): void
     {
         $resourceName = "{$modelName}Resource";
-        $this->command->call('make:resource', ['name' => "{$resourceName}"]);
+        $this->command->call('make:resource', ['name' => "{$resourceName}"], ['quiet' => true]);
 
         $resourceFile = app_path("Http/Resources/{$resourceName}.php");
 
         if (FileHelper::exists($resourceFile)) {
             $this->updateResourceFile($resourceFile);
+
+            $this->command->info("Resource [{$resourceFile}] created successfully.");
         } else {
             $this->command->error("Resource file not found: {$resourceFile}");
         }
