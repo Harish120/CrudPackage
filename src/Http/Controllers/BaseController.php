@@ -23,10 +23,25 @@ class BaseController extends LaravelBaseController
         $this->resource = $resource;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $items = $this->model::all();
+            $params = $request->all();
+            $query = $this->model::query();
+
+            // Initialize query with filters and sorting
+            $query = $query->initializeQuery($query, $params);
+
+            // Paginate results
+            $perPage = $params['rowsPerPage'] ?? 0;
+            $page = $params['page'] ?? 1;
+
+            if($perPage == 0) {
+                $items = $query->get();
+            } else {
+                $items = $query->paginate($perPage, ['*'], 'page', $page);
+            }
+
             return ApiResponse::success($this->resource::collection($items), 'Records retrieved successfully.');
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to retrieve records.', 500, ['error' => $e->getMessage()]);
