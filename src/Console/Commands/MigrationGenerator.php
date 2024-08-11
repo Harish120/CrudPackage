@@ -17,7 +17,7 @@ class MigrationGenerator
 
     public function generate($modelName): void
     {
-        $tableName = Str::plural(strtolower($modelName));
+        $tableName = Str::plural(Str::snake($modelName))        ;
         $migrationName = "create_{$tableName}_table";
         $timestamp = date('Y_m_d_His');
         $migrationFileName = "{$timestamp}_{$migrationName}.php";
