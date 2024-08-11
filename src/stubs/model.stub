@@ -8,7 +8,7 @@ use Harry\CrudPackage\Traits\{{ queryTrait }};
 
 class {{ modelName }} extends Model
 {
-    use HasFactory {{ queryTrait }};
+    use HasFactory, {{ queryTrait }};
 
     protected $fillable = {{ fillable }};
 }
