@@ -27,13 +27,16 @@ class ModelGenerator
         // Get the stub content
         $stubContent = FileHelper::read($stubPath);
 
+        // query trait
+        $queryTrait = 'HandlesQuery';
+
         // Generate fillable array
         $fillable = $this->generateFillable($columns);
 
         // Replace placeholders in the stub
         $modelContent = str_replace(
-            ['{{ modelName }}', '{{ HandlesQuery }}', '{{ fillable }}'],
-            [$modelName, $fillable],
+            ['{{ modelName }}', '{{ queryTrait }}', '{{ fillable }}'],
+            [$modelName, $queryTrait, $fillable],
             $stubContent
         );
 
