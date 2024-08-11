@@ -66,8 +66,16 @@ class ControllerGenerator
         $columns = $this->command->option('columns');
         $columnsArray = $this->parseColumns($columns);
 
+        // Extract file columns
+        $fileColumns = array_filter($columnsArray, function ($column) {
+            return Str::startsWith($column['type'], 'file');
+        });
+        $fileColumnsNames = array_map(function ($column) {
+            return $column['name'];
+        }, $fileColumns);
+
         // Prepare dynamic replacements
-        $replacements = $this->getReplacements($modelName, $columnsArray);
+        $replacements = $this->getReplacements($modelName, $columnsArray, $fileColumnsNames);
 
         // Replace placeholders in the stub
         $controllerContent = str_replace(
@@ -91,14 +99,20 @@ class ControllerGenerator
             $parts = explode(':', $column);
             $name = $parts[0];
             $type = rtrim($parts[1], '?');
-            $nullable = str_ends_with($parts[1], '?');
-            $columnsArray[] = ['name' => $name, 'type' => $type, 'nullable' => $nullable];
+            $nullable = Str::endsWith($parts[1], '?');
+            $file = Str::startsWith($parts[1], 'file');
+            $columnsArray[] = [
+                'name' => $name,
+                'type' => $type,
+                'nullable' => $nullable,
+                'file' => $file
+            ];
         }
 
         return $columnsArray;
     }
 
-    protected function getReplacements($modelName, $columnsArray): array
+    protected function getReplacements($modelName, $columnsArray, $fileColumnsNames): array
     {
         $modelNamespace = "App\\Models\\{$modelName}";
         $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
@@ -111,6 +125,7 @@ class ControllerGenerator
             '{{ resourceName }}' => "{$modelName}Resource",
             '{{ storeValidationRules }}' => $this->generateValidationRules($columnsArray, 'store'),
             '{{ updateValidationRules }}' => $this->generateValidationRules($columnsArray, 'update'),
+            '{{ fileColumns }}' => implode(', ', $fileColumnsNames),
         ];
     }
 
@@ -118,6 +133,10 @@ class ControllerGenerator
     {
         $rules = [];
         foreach ($columnsArray as $column) {
+            if ($column['file']) {
+                continue; // Skip file fields for validation
+            }
+
             if ($type === 'store') {
                 $rules[$column['name']] = $column['nullable'] ? 'nullable' : 'required';
             } elseif ($type === 'update') {

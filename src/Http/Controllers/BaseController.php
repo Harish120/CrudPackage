@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as LaravelBaseController;
+use Illuminate\Support\Facades\Storage;
 
 class BaseController extends LaravelBaseController
 {

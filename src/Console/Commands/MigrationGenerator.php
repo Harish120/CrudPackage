@@ -73,6 +73,9 @@ class MigrationGenerator
                 $defaultValue = $defaultString[1];
                 $hasDefaultValue = true;
             }
+            if ($type === 'file') {
+                $type = 'string'; // Store file paths as strings
+            }
             $nullableDefinition = $nullable ? '->nullable()' : '';
             $defaultDefinition = $hasDefaultValue ? "->default('{$defaultValue}')" : '';
             $columnDefinitions .= "\$table->$type('$name'){$nullableDefinition}{$defaultDefinition};\n\t\t\t";

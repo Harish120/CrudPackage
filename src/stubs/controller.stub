@@ -13,7 +13,7 @@ class {{ controllerName }} extends BaseController
      */
     public function __construct()
     {
-        parent::__construct({{ modelName }}::class, {{ resourceName }}::class);
+        parent::__construct({{ modelName }}::class, {{ resourceName }}::class, [{{ fileColumns }}]);
     }
 
     /**
