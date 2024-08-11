@@ -4,6 +4,7 @@ namespace Harry\CrudPackage\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 trait HandlesQuery
 {
@@ -14,32 +15,32 @@ trait HandlesQuery
      * @param array $params
      * @return Builder
      */
-    public function initializeQuery(Builder $query, array $params): Builder
+    public static function initializeQuery(): Builder
     {
-        // Apply filters
-        if (!empty($params['filters']) && is_array($params['filters'])) {
-            $filters = $params['filters'];
+        $filters = json_decode(request()->query('filters', '{}'), true);
+        $sortBy = request()->input('sortBy');
+        $descending = request()->input('descending', false);
 
-            foreach ($filters as $key => $value) {
-                if (is_array($value) && isset($value['scope'])) {
-                    $scopeMethod = $value['scope'];
-                    if (method_exists($query->getModel(), $scopeMethod)) {
-                        $query = $query->scopes([$scopeMethod => $value['value']]);
-                    }
-                } else {
-                    $query->where($key, $value);
-                }
+        $model = static::query();
+
+        // Apply filters
+        foreach ($filters as $filter => $value) {
+            $method = ucfirst(Str::camel($filter));
+            if (method_exists(static::class, 'scope' . $method)) {
+                $model = $model->scope($filter, $value);
+            }  elseif (method_exists($model, $filter)) {
+                $model = $model->{$filter}($value);
             }
         }
 
         // Apply sorting
-        if (!empty($params['sortBy'])) {
-            $sortBy = $params['sortBy'];
-            $descending = $params['descending'] ?? false;
-            $direction = $descending ? 'desc' : 'asc';
-            $query->orderBy($sortBy, $direction);
+        if(is_string($sortBy) && $sortBy !== 'null') {
+            $model->orderBy($sortBy, $descending ? 'desc' : 'asc');
+        } else {
+            $model->latest();
         }
 
-        return $query;
+        return $model;
     }
 }
+

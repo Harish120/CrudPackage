@@ -3,6 +3,7 @@
 namespace Harry\CrudPackage\Http\Controllers;
 
 use Harry\CrudPackage\Helpers\ApiResponse;
+use Harry\CrudPackage\Helpers\MetaHelper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -27,10 +28,7 @@ class BaseController extends LaravelBaseController
     {
         try {
             $params = $request->all();
-            $query = $this->model::query();
-
-            // Initialize query with filters and sorting
-            $query = $query->initializeQuery($query, $params);
+            $query = $this->model::initializeQuery();
 
             // Paginate results
             $perPage = $params['rowsPerPage'] ?? 0;
@@ -38,11 +36,14 @@ class BaseController extends LaravelBaseController
 
             if($perPage == 0) {
                 $items = $query->get();
+                $meta = null;
             } else {
                 $items = $query->paginate($perPage, ['*'], 'page', $page);
+
+                $meta = MetaHelper::paginationMeta($items);
             }
 
-            return ApiResponse::success($this->resource::collection($items), 'Records retrieved successfully.');
+            return ApiResponse::success($this->resource::collection($items), 'Records retrieved successfully.', 200, $meta);
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to retrieve records.', 500, ['error' => $e->getMessage()]);
         }
