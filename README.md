@@ -50,10 +50,10 @@ If dynamic columns are provided, the package automatically generates validation 
 
 The package generates the following files for the specified model:
 
-- **Model**: `app/Models/ModelName.php`
+- **Model**: `app/Models/{ModelName}.php`
 - **Migration**: `database/migrations/xxxx_xx_xx_create_model_name_table.php`
-- **Controller**: `app/Http/Controllers/ModelNameController.php`
-- **Resource**: `app/Http/Resources/ModelNameResource.php`
+- **Controller**: `app/Http/Controllers/Api/{ModelName}Controller.php`
+- **Resource**: `app/Http/Resources/{ModelName}Resource.php`
 - **Route**: Adds an API resource route in `routes/api.php`
 
 ## Contributing
