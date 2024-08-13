@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Config;
 
-use RectorPrefix202407\Illuminate\Container\Container;
+use RectorPrefix202408\Illuminate\Container\Container;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
@@ -18,11 +18,11 @@ use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
 use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
-use RectorPrefix202407\Symfony\Component\Console\Command\Command;
-use RectorPrefix202407\Symfony\Component\Console\Input\ArrayInput;
-use RectorPrefix202407\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202407\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202407\Webmozart\Assert\Assert;
+use RectorPrefix202408\Symfony\Component\Console\Command\Command;
+use RectorPrefix202408\Symfony\Component\Console\Input\ArrayInput;
+use RectorPrefix202408\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202408\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202408\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -331,5 +331,9 @@ final class RectorConfig extends Container
             }
             $this->tag($abstract, $autotagInterface);
         }
+    }
+    public function reportingRealPath(bool $absolute = \true) : void
+    {
+        SimpleParameterProvider::setParameter(Option::ABSOLUTE_FILE_PATH, $absolute);
     }
 }

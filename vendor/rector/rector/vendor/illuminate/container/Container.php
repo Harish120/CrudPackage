@@ -1,14 +1,14 @@
 <?php
 
-namespace RectorPrefix202407\Illuminate\Container;
+namespace RectorPrefix202408\Illuminate\Container;
 
 use ArrayAccess;
 use Closure;
 use Exception;
-use RectorPrefix202407\Illuminate\Contracts\Container\BindingResolutionException;
-use RectorPrefix202407\Illuminate\Contracts\Container\CircularDependencyException;
-use RectorPrefix202407\Illuminate\Contracts\Container\Container as ContainerContract;
-use RectorPrefix202407\Illuminate\Contracts\Container\ContextualAttribute;
+use RectorPrefix202408\Illuminate\Contracts\Container\BindingResolutionException;
+use RectorPrefix202408\Illuminate\Contracts\Container\CircularDependencyException;
+use RectorPrefix202408\Illuminate\Contracts\Container\Container as ContainerContract;
+use RectorPrefix202408\Illuminate\Contracts\Container\ContextualAttribute;
 use LogicException;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -1159,8 +1159,11 @@ class Container implements ArrayAccess, ContainerContract
     protected function fireAfterResolvingAttributeCallbacks(array $attributes, $object)
     {
         foreach ($attributes as $attribute) {
-            if (\method_exists($instance = $attribute->newInstance(), 'after')) {
-                $instance->after($instance, $object, $this);
+            if (\is_a($attribute->getName(), ContextualAttribute::class, \true)) {
+                $instance = $attribute->newInstance();
+                if (\method_exists($instance, 'after')) {
+                    $instance->after($instance, $object, $this);
+                }
             }
             $callbacks = $this->getCallbacksForType($attribute->getName(), $object, $this->afterResolvingAttributeCallbacks);
             foreach ($callbacks as $callback) {

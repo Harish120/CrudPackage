@@ -413,7 +413,7 @@ class ComposerStaticInit7b4cff7cfaf0d196d2f00bf09a09cdf4
         ),
         'Harry\\CrudPackage\\Tests\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Tests',
+            0 => __DIR__ . '/../..' . '/tests',
         ),
         'Harry\\CrudPackage\\' => 
         array (

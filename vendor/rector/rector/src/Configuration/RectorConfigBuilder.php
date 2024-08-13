@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Configuration;
 
-use RectorPrefix202407\Nette\Utils\FileSystem;
+use RectorPrefix202408\Nette\Utils\FileSystem;
 use Rector\Bridge\SetProviderCollector;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Config\Level\CodeQualityLevel;
@@ -29,8 +29,8 @@ use Rector\Symfony\Set\JMSSetList;
 use Rector\Symfony\Set\SensiolabsSetList;
 use Rector\Symfony\Set\SymfonySetList;
 use Rector\ValueObject\PhpVersion;
-use RectorPrefix202407\Symfony\Component\Finder\Finder;
-use RectorPrefix202407\Webmozart\Assert\Assert;
+use RectorPrefix202408\Symfony\Component\Finder\Finder;
+use RectorPrefix202408\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -171,6 +171,10 @@ final class RectorConfigBuilder
      */
     private $setGroups = [];
     /**
+     * @var bool|null
+     */
+    private $reportingRealPath;
+    /**
      * @var string[]
      */
     private $groupLoadedSets = [];
@@ -276,6 +280,9 @@ final class RectorConfigBuilder
         }
         if ($this->isFluentNewLine !== null) {
             $rectorConfig->newLineOnFluentCall($this->isFluentNewLine);
+        }
+        if ($this->reportingRealPath !== null) {
+            $rectorConfig->reportingRealPath($this->reportingRealPath);
         }
     }
     /**
@@ -768,6 +775,11 @@ final class RectorConfigBuilder
         if ($php71) {
             $this->sets[] = DowngradeLevelSetList::DOWN_TO_PHP_71;
         }
+        return $this;
+    }
+    public function withRealPathReporting(bool $absolutePath = \true) : self
+    {
+        $this->reportingRealPath = $absolutePath;
         return $this;
     }
 }
