@@ -73,8 +73,10 @@ class MigrationGenerator
             } else if(Str::contains($type, '*')) {
                 $defaultString = explode('*', $type);
                 $type = $defaultString[0];
-                $defaultValue = $defaultString[1];
-                $hasDefaultValue = true;
+                if(isset($defaultString[1])) {
+                    $defaultValue = $defaultString[1];
+                    $hasDefaultValue = true;
+                }
             }
             if ($type === 'file') {
                 $type = 'string'; // Store file paths as strings
