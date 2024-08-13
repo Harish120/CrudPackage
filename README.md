@@ -28,7 +28,7 @@ php artisan crud:generate ModelName --columns=name:string,email:string,age:integ
 - **`--columns=`**: A comma-separated list of columns with their types. Example: `name:string,email:string,age:integer`.
     - Supported types: `string`, `integer`, `boolean`, `text`, `date`, `file`.
     - Add `?` after the type to make the column nullable. Example: `email:string?`.
-    - Add `*` after the type followed by a value to set a default value. Example: `active:boolean*=true`.
+    - Add `*` after the type followed by a value to set a default value. Example: `active:boolean*true`.
 
 ### Example Commands
 
