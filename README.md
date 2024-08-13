@@ -7,7 +7,7 @@ A Laravel package to automatically generate CRUD operations including models, mi
 To install the package, run:
 
 ```bash
-composer require harry/crudpackage
+composer require harryes/crudpackage
 ```
 
 ## Usage

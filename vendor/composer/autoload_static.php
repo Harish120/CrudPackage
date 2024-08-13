@@ -134,8 +134,8 @@ class ComposerStaticInit7b4cff7cfaf0d196d2f00bf09a09cdf4
         ),
         'H' => 
         array (
-            'Harry\\CrudPackage\\Tests\\' => 24,
-            'Harry\\CrudPackage\\' => 18,
+            'Harryes\\CrudPackage\\Tests\\' => 26,
+            'Harryes\\CrudPackage\\' => 20,
         ),
         'G' => 
         array (
@@ -411,11 +411,11 @@ class ComposerStaticInit7b4cff7cfaf0d196d2f00bf09a09cdf4
         array (
             0 => __DIR__ . '/..' . '/laravel/framework/src/Illuminate',
         ),
-        'Harry\\CrudPackage\\Tests\\' => 
+        'Harryes\\CrudPackage\\Tests\\' => 
         array (
             0 => __DIR__ . '/../..' . '/tests',
         ),
-        'Harry\\CrudPackage\\' => 
+        'Harryes\\CrudPackage\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
