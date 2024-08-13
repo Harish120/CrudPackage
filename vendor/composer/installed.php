@@ -3,7 +3,7 @@
         'name' => 'harryes/crudpackage',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6d83bc882c2f90b8856fa7341b9c1d09ad389318',
+        'reference' => 'cf23ad972edf402063d037d22a3be3cbf5677538',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -133,7 +133,7 @@
         'harryes/crudpackage' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6d83bc882c2f90b8856fa7341b9c1d09ad389318',
+            'reference' => 'cf23ad972edf402063d037d22a3be3cbf5677538',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

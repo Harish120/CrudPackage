@@ -90,6 +90,11 @@ class ControllerGenerator
 
         // Write the controller file
         $controllerFilePath = app_path("Http/Controllers/Api/{$modelName}Controller.php");
+        $controllerDir = dirname(app_path("Http/Controllers/Api/{$modelName}Controller.php"));
+        if (!FileHelper::exists($controllerDir)) {
+            FileHelper::makeDirectory($controllerDir, 0755, true);
+        }
+
         FileHelper::write($controllerFilePath, $controllerContent);
         $this->command->info("    Controller [{$controllerFilePath}] created successfully.");
     }

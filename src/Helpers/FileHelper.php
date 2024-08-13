@@ -29,7 +29,7 @@ class FileHelper
      * @param string $path The path to the file.
      * @return string The file content.
      */
-    public static function read($path)
+    public static function read($path): string
     {
         return File::get($path);
     }
@@ -40,8 +40,14 @@ class FileHelper
      * @param string $path The path to the file.
      * @return bool
      */
-    public static function exists($path)
+    public static function exists($path): bool
     {
         return File::exists($path);
+    }
+
+    // make directory
+    public static function makeDirectory($path, $mode, $recursive = true, $force = false): bool
+    {
+        return File::makeDirectory($path = 'path', $mode = 0755, $recursive = true, $force = false);
     }
 }
