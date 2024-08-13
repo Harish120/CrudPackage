@@ -16,6 +16,19 @@ class CrudCommand extends Command
     {
         $modelName = $this->argument('model');
         $columns = $this->option('columns');
+
+        if ($columns === '') {
+            $this->error('Error: The --columns option cannot be empty.');
+            return;
+        }
+
+        // Validate the columns format
+        $columnPattern = '/^(\w+:(string|integer|boolean|text|date|file)(\?)?(,)?)+$/';
+        if (!preg_match($columnPattern, $columns)) {
+            $this->error('Error: Invalid column format. Correct format is name:type,example:string?');
+            return;
+        }
+
         $this->info("Generating CRUD for model: $modelName");
         $this->info("");
 

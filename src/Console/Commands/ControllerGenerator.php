@@ -64,15 +64,19 @@ class ControllerGenerator
 
         // Parse columns
         $columns = $this->command->option('columns');
-        $columnsArray = $this->parseColumns($columns);
+        $columnsArray = [];
+        $fileColumnsNames = [];
+        if($columns) {
+            $columnsArray = $this->parseColumns($columns);
 
-        // Extract file columns
-        $fileColumns = array_filter($columnsArray, function ($column) {
-            return Str::startsWith($column['type'], 'file');
-        });
-        $fileColumnsNames = array_map(function ($column) {
-            return $column['name'];
-        }, $fileColumns);
+            // Extract file columns
+            $fileColumns = array_filter($columnsArray, function ($column) {
+                return Str::startsWith($column['type'], 'file');
+            });
+            $fileColumnsNames = array_map(function ($column) {
+                return $column['name'];
+            }, $fileColumns);
+        }
 
         // Prepare dynamic replacements
         $replacements = $this->getReplacements($modelName, $columnsArray, $fileColumnsNames);

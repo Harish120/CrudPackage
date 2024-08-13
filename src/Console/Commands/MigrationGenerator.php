@@ -36,7 +36,10 @@ class MigrationGenerator
         $stubContent = FileHelper::read($stubPath);
 
         $columns = $this->command->option('columns');
-        $columnDefinitions = $this->generateColumnDefinitions($columns);
+        $columnDefinitions = null;
+        if($columns) {
+            $columnDefinitions = $this->generateColumnDefinitions($columns);
+        }
 
         // Replace placeholders in the stub
         $migrationContent = str_replace(
