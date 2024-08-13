@@ -48,6 +48,6 @@ class FileHelper
     // make directory
     public static function makeDirectory($path, $mode, $recursive = true, $force = false): bool
     {
-        return File::makeDirectory($path, $mode, $recursive = true, $force = false);
+        return File::makeDirectory($path, $mode, $recursive, $force);
     }
 }
