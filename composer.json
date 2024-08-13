@@ -2,8 +2,9 @@
   "name": "harry/crudpackage",
   "description": "A package to handle Api CRUD operations in Laravel",
   "minimum-stability": "stable",
-  "license": "proprietary",
+  "license": "MIT",
   "type": "library",
+  "keywords": ["laravel", "crud", "api", "generator", "package", "laravel-package"],
   "autoload": {
     "psr-4": {
       "Harry\\CrudPackage\\": "src/"
