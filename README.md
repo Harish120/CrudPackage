@@ -26,7 +26,7 @@ php artisan crud:generate ModelName --columns=name:string,email:string,age:integ
 
 - **`model`**: The name of the model for which CRUD operations will be generated.
 - **`--columns=`**: A comma-separated list of columns with their types. Example: `name:string,email:string,age:integer`.
-    - Supported types: `string`, `integer`, `boolean`, `text`, `date`.
+    - Supported types: `string`, `integer`, `boolean`, `text`, `date`, `file`.
     - Add `?` after the type to make the column nullable. Example: `email:string?`.
 
 ### Example Commands
