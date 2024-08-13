@@ -4,7 +4,7 @@
   "minimum-stability": "stable",
   "license": "MIT",
   "type": "library",
-  "keywords": ["laravel", "crud", "api", "generator", "package", "laravel-package"],
+  "keywords": ["laravel", "crud", "api", "generator", "package", "laravel-package", "dynamic", "crud-generator"],
   "autoload": {
     "psr-4": {
       "Harry\\CrudPackage\\": "src/"
