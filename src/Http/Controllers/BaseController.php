@@ -1,9 +1,9 @@
 <?php
 
-namespace Harry\CrudPackage\Http\Controllers;
+namespace Harryes\CrudPackage\Http\Controllers;
 
-use Harry\CrudPackage\Helpers\ApiResponse;
-use Harry\CrudPackage\Helpers\MetaHelper;
+use Harryes\CrudPackage\Helpers\ApiResponse;
+use Harryes\CrudPackage\Helpers\MetaHelper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;

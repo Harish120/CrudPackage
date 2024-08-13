@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'harry/crudpackage',
-        'pretty_version' => '1.0.0',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'd9e93786b0d791aa882eb675ba9617efc1944c07',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -131,9 +131,9 @@
             'dev_requirement' => true,
         ),
         'harry/crudpackage' => array(
-            'pretty_version' => '1.0.0',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'd9e93786b0d791aa882eb675ba9617efc1944c07',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

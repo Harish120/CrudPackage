@@ -1,8 +1,8 @@
 <?php
 
-namespace Harry\CrudPackage\Console\Commands;
+namespace Harryes\CrudPackage\Console\Commands;
 
-use Harry\CrudPackage\Helpers\FileHelper;
+use Harryes\CrudPackage\Helpers\FileHelper;
 
 class ModelGenerator
 {

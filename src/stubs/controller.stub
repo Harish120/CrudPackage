@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use {{ modelNamespace }};
 use {{ resourceNamespace }};
-use Harry\CrudPackage\Http\Controllers\BaseController;
+use Harryes\CrudPackage\Http\Controllers\BaseController;
 
 class {{ controllerName }} extends BaseController
 {

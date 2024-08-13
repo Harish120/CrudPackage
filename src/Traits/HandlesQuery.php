@@ -1,6 +1,6 @@
 <?php
 
-namespace Harry\CrudPackage\Traits;
+namespace Harryes\CrudPackage\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;

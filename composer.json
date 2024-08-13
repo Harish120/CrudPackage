@@ -1,5 +1,5 @@
 {
-  "name": "harry/crudpackage",
+  "name": "harryes/crudpackage",
   "description": "A package to handle Api CRUD operations in Laravel",
   "minimum-stability": "stable",
   "license": "MIT",
@@ -7,12 +7,12 @@
   "keywords": ["laravel", "crud", "api", "generator", "package", "laravel-package", "dynamic", "crud-generator"],
   "autoload": {
     "psr-4": {
-      "Harry\\CrudPackage\\": "src/"
+      "Harryes\\CrudPackage\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Harry\\CrudPackage\\Tests\\": "tests/"
+      "Harryes\\CrudPackage\\Tests\\": "tests/"
     }
   },
   "authors": [
@@ -37,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Harry\\CrudPackage\\CrudPackageServiceProvider"
+        "Harryes\\CrudPackage\\CrudPackageServiceProvider"
       ]
     }
   },

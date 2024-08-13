@@ -1,6 +1,6 @@
 <?php
 
-namespace Harry\CrudPackage\Helpers;
+namespace Harryes\CrudPackage\Helpers;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Harry\CrudPackage\Console\Commands;
+namespace Harryes\CrudPackage\Console\Commands;
 
 use Illuminate\Support\Str;
 

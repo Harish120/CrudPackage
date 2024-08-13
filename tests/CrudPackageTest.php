@@ -1,6 +1,6 @@
 <?php
 
-namespace Harry\CrudPackage\Tests;
+namespace Harryes\CrudPackage\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

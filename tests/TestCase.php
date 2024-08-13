@@ -1,8 +1,8 @@
 <?php
-namespace Harry\CrudPackage\Tests;
+namespace Harryes\CrudPackage\Tests;
 
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
-use Harry\CrudPackage\CrudPackageServiceProvider;
+use Harryes\CrudPackage\CrudPackageServiceProvider;
 use Dotenv\Dotenv;
 
 abstract class TestCase extends OrchestraTestCase

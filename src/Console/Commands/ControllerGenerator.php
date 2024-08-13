@@ -1,8 +1,8 @@
 <?php
 
-namespace Harry\CrudPackage\Console\Commands;
+namespace Harryes\CrudPackage\Console\Commands;
 
-use Harry\CrudPackage\Helpers\FileHelper;
+use Harryes\CrudPackage\Helpers\FileHelper;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Output\NullOutput;
@@ -45,7 +45,7 @@ class ControllerGenerator
     protected function updateResourceFile($resourceFile): void
     {
         $content = FileHelper::read($resourceFile);
-        $dynamicResourceNamespace = "\\Harry\\CrudPackage\\Http\\Resources\\DynamicResource";
+        $dynamicResourceNamespace = "\\Harryes\\CrudPackage\\Http\\Resources\\DynamicResource";
 
         $content = str_replace(
             "return parent::toArray(\$request);",

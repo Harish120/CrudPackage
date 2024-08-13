@@ -1,8 +1,8 @@
 <?php
 
-namespace Harry\CrudPackage;
+namespace Harryes\CrudPackage;
 
-use Harry\CrudPackage\Console\CrudCommand;
+use Harryes\CrudPackage\Console\CrudCommand;
 use Illuminate\Support\ServiceProvider;
 
 class CrudPackageServiceProvider extends ServiceProvider
