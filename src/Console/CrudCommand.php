@@ -5,6 +5,7 @@ use Harryes\CrudPackage\Console\Commands\ControllerGenerator;
 use Harryes\CrudPackage\Console\Commands\MigrationGenerator;
 use Harryes\CrudPackage\Console\Commands\ModelGenerator;
 use Harryes\CrudPackage\Console\Commands\RouteGenerator;
+use Harryes\CrudPackage\Helpers\ColumnValidator;
 use Illuminate\Console\Command;
 
 class CrudCommand extends Command
@@ -23,10 +24,16 @@ class CrudCommand extends Command
         }
 
         // Validate the columns format
-        $columnPattern = '/^(\w+:(string|integer|boolean|text|date|file)(\?)?(,)?)+$/';
-        if (!preg_match($columnPattern, $columns)) {
-            $this->error('Error: Invalid column format. Correct format is name:type,example:string?');
-            return;
+        if ($columns) {
+            $validationErrors = ColumnValidator::validateColumnsFormat($columns);
+
+            if (!empty($validationErrors)) {
+                $this->error('Error: Invalid column format.');
+                foreach ($validationErrors as $error) {
+                    $this->error($error);
+                }
+                return;
+            }
         }
 
         $this->info("Generating CRUD for model: $modelName");
