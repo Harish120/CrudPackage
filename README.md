@@ -26,7 +26,62 @@ php artisan crud:generate ModelName --columns=name:string,email:string,age:integ
 
 - **`model`**: The name of the model for which CRUD operations will be generated.
 - **`--columns=`**: A comma-separated list of columns with their types. Example: `name:string,email:string,age:integer`.
-    - Supported types: `string`, `integer`, `boolean`, `text`, `date`, `file`.
+    - Supported types: 
+        - bigIncrements
+        - bigInteger
+        - binary
+        - boolean
+        - char
+        - date
+        - dateTime
+        - decimal
+        - double
+        - enum
+        - float
+        - geometry
+        - geometryCollection
+        - increments
+        - integer
+        - ipAddress
+        - json
+        - jsonb
+        - lineString
+        - longText
+        - macAddress
+        - mediumIncrements
+        - mediumInteger
+        - mediumText
+        - morphs
+        - multiLineString
+        - multiPoint
+        - multiPolygon
+        - nullableMorphs
+        - nullableTimestamps
+        - point
+        - polygon
+        - rememberToken
+        - set
+        - smallIncrements
+        - smallInteger
+        - softDeletes
+        - softDeletesTz
+        - string
+        - text
+        - time
+        - timeTz
+        - timestamp
+        - timestampTz
+        - tinyIncrements
+        - tinyInteger
+        - tinyText
+        - unsignedBigInteger
+        - unsignedDecimal
+        - unsignedInteger
+        - unsignedMediumInteger
+        - unsignedSmallInteger
+        - unsignedTinyInteger
+        - uuid
+        - year.
     - Add `?` after the type to make the column nullable. Example: `email:string?`.
     - Add `*` after the type followed by a value to set a default value. Example: `active:boolean*true`.
 
