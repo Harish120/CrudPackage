@@ -27,7 +27,7 @@ trait HandlesQuery
         foreach ($filters as $filter => $value) {
             $method = ucfirst(Str::camel($filter));
             if (method_exists(static::class, 'scope' . $method)) {
-                $model = $model->scope($filter, $value);
+                $model = $model->{$filter}($value);
             }  elseif (method_exists($model, $filter)) {
                 $model = $model->{$filter}($value);
             }
