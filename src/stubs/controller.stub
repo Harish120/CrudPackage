@@ -39,4 +39,5 @@ class {{ controllerName }} extends BaseController
             {{ updateValidationRules }}
         ];
     }
+
 }
