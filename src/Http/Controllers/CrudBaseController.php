@@ -71,6 +71,11 @@ class CrudBaseController extends Controller
             // Validation is handled by the request class
             $item = $this->model::create($request->validated());
 
+            // Call afterCreateProcess on the model
+            if (method_exists($item, 'afterCreateProcess')) {
+                $item->afterCreateProcess($request);
+            }
+
             return ApiResponse::success(new $this->resource($item), 'Record created successfully.', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ApiResponse::error('Validation failed.', 422, $e->errors());
@@ -109,6 +114,11 @@ class CrudBaseController extends Controller
 
             // Validation is handled by the request class
             $item->update($request->validated());
+
+            // Call afterUpdateProcess on the model
+            if (method_exists($item, 'afterUpdateProcess')) {
+                $item->afterUpdateProcess($request);
+            }
 
             return ApiResponse::success(new $this->resource($item), 'Record updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {

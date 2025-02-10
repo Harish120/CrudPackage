@@ -6,9 +6,9 @@ use {{ modelNamespace }};
 use {{ resourceNamespace }};
 use {{ storeRequestNamespace }};
 use {{ updateRequestNamespace }};
-use Harryes\CrudPackage\Http\Controllers\BaseController;
+use Harryes\CrudPackage\Http\Controllers\CrudBaseController;
 
-class {{ controllerName }} extends BaseController
+class {{ controllerName }} extends CrudBaseController
 {
     /**
      * Constructor to bind the model and resource class to the BaseController.
