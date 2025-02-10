@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Harryes\CrudPackage\Traits\{{ queryTrait }};
+use Illuminate\Http\Request;
 
 class {{ modelName }} extends Model
 {
