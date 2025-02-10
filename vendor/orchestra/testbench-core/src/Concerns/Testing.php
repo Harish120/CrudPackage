@@ -25,6 +25,7 @@ trait Testing
 {
     use CreatesApplication;
     use HandlesAnnotations;
+    use HandlesAssertions;
     use HandlesAttributes;
     use HandlesDatabases;
     use HandlesRoutes;
@@ -248,7 +249,7 @@ trait Testing
      * @param  callable():void  $callback
      * @return void
      */
-    protected function afterApplicationRefreshed(callable $callback): void
+    public function afterApplicationRefreshed(callable $callback): void
     {
         $this->afterApplicationRefreshedCallbacks[] = $callback;
 
@@ -263,7 +264,7 @@ trait Testing
      * @param  callable():void  $callback
      * @return void
      */
-    protected function afterApplicationCreated(callable $callback): void
+    public function afterApplicationCreated(callable $callback): void
     {
         $this->afterApplicationCreatedCallbacks[] = $callback;
 
@@ -278,7 +279,7 @@ trait Testing
      * @param  callable():void  $callback
      * @return void
      */
-    protected function beforeApplicationDestroyed(callable $callback): void
+    public function beforeApplicationDestroyed(callable $callback): void
     {
         array_unshift($this->beforeApplicationDestroyedCallbacks, $callback);
     }

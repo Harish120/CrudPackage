@@ -72,8 +72,8 @@ class Commander
      */
     public function handle()
     {
-        $input = new ArgvInput();
-        $output = new ConsoleOutput();
+        $input = new ArgvInput;
+        $output = new ConsoleOutput;
 
         try {
             $laravel = $this->laravel();

@@ -41,7 +41,7 @@ final class RegexHelper
     public const PARTIAL_REG_CHAR              = '[^\\\\()\x00-\x20]';
     public const PARTIAL_IN_PARENS_NOSP        = '\((' . self::PARTIAL_REG_CHAR . '|' . self::PARTIAL_ESCAPED_CHAR . '|\\\\)*\)';
     public const PARTIAL_TAGNAME               = '[a-z][a-z0-9-]*';
-    public const PARTIAL_BLOCKTAGNAME          = '(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h1|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)';
+    public const PARTIAL_BLOCKTAGNAME          = '(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h1|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)';
     public const PARTIAL_ATTRIBUTENAME         = '[a-z_:][a-z0-9:._-]*';
     public const PARTIAL_UNQUOTEDVALUE         = '[^"\'=<>`\x00-\x20]+';
     public const PARTIAL_SINGLEQUOTEDVALUE     = '\'[^\']*\'';
@@ -61,9 +61,9 @@ final class RegexHelper
         self::PARTIAL_PROCESSINGINSTRUCTION . '|' . self::PARTIAL_DECLARATION . '|' . self::PARTIAL_CDATA . ')';
     public const PARTIAL_HTMLBLOCKOPEN         = '<(?:' . self::PARTIAL_BLOCKTAGNAME . '(?:[\s\/>]|$)' . '|' .
         '\/' . self::PARTIAL_BLOCKTAGNAME . '(?:[\s>]|$)' . '|' . '[?!])';
-    public const PARTIAL_LINK_TITLE            = '^(?:"(' . self::PARTIAL_ESCAPED_CHAR . '|[^"\x00])*"' .
-        '|' . '\'(' . self::PARTIAL_ESCAPED_CHAR . '|[^\'\x00])*\'' .
-        '|' . '\((' . self::PARTIAL_ESCAPED_CHAR . '|[^()\x00])*\))';
+    public const PARTIAL_LINK_TITLE            = '^(?:"(' . self::PARTIAL_ESCAPED_CHAR . '|[^"\x00])*+"' .
+        '|' . '\'(' . self::PARTIAL_ESCAPED_CHAR . '|[^\'\x00])*+\'' .
+        '|' . '\((' . self::PARTIAL_ESCAPED_CHAR . '|[^()\x00])*+\))';
 
     public const REGEX_PUNCTUATION        = '/^[!"#$%&\'()*+,\-.\\/:;<=>?@\\[\\]\\\\^_`{|}~\p{P}\p{S}]/u';
     public const REGEX_UNSAFE_PROTOCOL    = '/^javascript:|vbscript:|file:|data:/i';
@@ -81,6 +81,12 @@ final class RegexHelper
     public static function isEscapable(string $character): bool
     {
         return \preg_match('/' . self::PARTIAL_ESCAPABLE . '/', $character) === 1;
+    }
+
+    public static function isWhitespace(string $character): bool
+    {
+        /** @psalm-suppress InvalidLiteralArgument */
+        return $character !== '' && \strpos(" \t\n\x0b\x0c\x0d", $character) !== false;
     }
 
     /**

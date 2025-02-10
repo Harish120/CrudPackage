@@ -5,6 +5,7 @@ namespace Orchestra\Testbench;
 use Closure;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;
@@ -67,7 +68,7 @@ function artisan($context, string $command, array $parameters = [])
 function remote(string $command, $env = []): Process
 {
     $phpBinary = transform(
-        \defined('PHP_BINARY') ? PHP_BINARY : (new PhpExecutableFinder())->find(),
+        \defined('PHP_BINARY') ? PHP_BINARY : (new PhpExecutableFinder)->find(),
         static function ($phpBinary) {
             return ProcessUtils::escapeArgument((string) $phpBinary);
         }
@@ -98,7 +99,7 @@ function remote(string $command, $env = []): Process
  */
 function once($callback): Closure
 {
-    $response = new Foundation\UndefinedValue();
+    $response = new Foundation\UndefinedValue;
 
     return function () use ($callback, &$response) {
         if ($response instanceof Foundation\UndefinedValue) {
@@ -205,7 +206,7 @@ function parse_environment_variables($variables): array
             } elseif (\is_null($value) || \in_array($value, ['null'])) {
                 $value = '(null)';
             } else {
-                $value = $key === 'APP_DEBUG' ? sprintf('(%s)', Str::of($value)->ltrim('(')->rtrim(')')) : "'{$value}'";
+                $value = $key === 'APP_DEBUG' ? \sprintf('(%s)', Str::of($value)->ltrim('(')->rtrim(')')) : "'{$value}'";
             }
 
             return "{$key}={$value}";
@@ -244,14 +245,35 @@ function transform_relative_path(string $path, string $workingPath): string
 /**
  * Get the default skeleton path.
  *
- * @param  string  $path
+ * @param  array|string  $path
  * @return string
  */
-function default_skeleton_path(string $path = ''): string
+function default_skeleton_path($path = ''): string
 {
-    $path = $path != '' ? ltrim($path, DIRECTORY_SEPARATOR) : '';
+    return (string) realpath(join_paths(__DIR__, '..', 'laravel', ...Arr::wrap(\func_num_args() > 1 ? \func_get_args() : $path)));
+}
 
-    return rtrim((string) realpath(__DIR__."/../laravel/{$path}"), DIRECTORY_SEPARATOR);
+/**
+ * Get the migration path by type.
+ *
+ * @api
+ *
+ * @param  string|null  $type
+ * @return string
+ *
+ * @throws \InvalidArgumentException
+ */
+function default_migration_path(?string $type = null): string
+{
+    $path = realpath(
+        \is_null($type) ? base_path('migrations') : base_path(join_paths('migrations', $type))
+    );
+
+    if ($path === false) {
+        throw new InvalidArgumentException(\sprintf('Unable to resolve migration path for type [%s]', $type ?? 'laravel'));
+    }
+
+    return $path;
 }
 
 /**
@@ -259,24 +281,26 @@ function default_skeleton_path(string $path = ''): string
  *
  * @api
  *
- * @param  string  $path
+ * @param  array|string  $path
  * @return string
  */
-function package_path(string $path = ''): string
+function package_path($path = ''): string
 {
+    $argumentCount = \func_num_args();
+
     $workingPath = \defined('TESTBENCH_WORKING_PATH')
         ? TESTBENCH_WORKING_PATH
         : Env::get('TESTBENCH_WORKING_PATH', getcwd());
 
-    if (Str::startsWith($path, './')) {
+    if ($argumentCount === 1 && \is_string($path) && str_starts_with($path, './')) {
         return transform_relative_path($path, $workingPath);
     }
 
-    if (empty($path)) {
-        return rtrim($workingPath, DIRECTORY_SEPARATOR);
-    }
+    $path = join_paths(...Arr::wrap($argumentCount > 1 ? \func_get_args() : $path));
 
-    return rtrim($workingPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR);
+    return Str::startsWith($path, './')
+        ? transform_relative_path($path, $workingPath)
+        : join_paths(rtrim($workingPath, DIRECTORY_SEPARATOR), $path);
 }
 
 /**
@@ -291,7 +315,7 @@ function workbench(): array
     /** @var \Orchestra\Testbench\Contracts\Config $config */
     $config = app()->bound(Contracts\Config::class)
         ? app()->make(Contracts\Config::class)
-        : new Foundation\Config();
+        : new Foundation\Config;
 
     return $config->getWorkbenchAttributes();
 }
@@ -301,14 +325,12 @@ function workbench(): array
  *
  * @api
  *
- * @param  string  $path
+ * @param  array|string  $path
  * @return string
  */
-function workbench_path(string $path = ''): string
+function workbench_path($path = ''): string
 {
-    $path = $path != '' ? ltrim($path, DIRECTORY_SEPARATOR) : '';
-
-    return package_path('workbench'.DIRECTORY_SEPARATOR.$path);
+    return package_path('workbench', ...Arr::wrap(\func_num_args() > 1 ? \func_get_args() : $path));
 }
 
 /**
@@ -320,18 +342,32 @@ function workbench_path(string $path = ''): string
  * @return string
  *
  * @throws \InvalidArgumentException
+ *
+ * @deprecated
  */
 function laravel_migration_path(?string $type = null): string
 {
-    $path = realpath(
-        \is_null($type) ? base_path('migrations') : base_path("migrations/{$type}")
-    );
+    return default_migration_path($type);
+}
 
-    if ($path === false) {
-        throw new InvalidArgumentException(sprintf('Unable to resolve migration path for type [%s]', $type ?? 'laravel'));
-    }
+/**
+ * Determine if vendor symlink exists on the laravel application.
+ *
+ * @api
+ *
+ * @param  \Illuminate\Contracts\Foundation\Application  $app
+ * @param  string|null  $workingPath
+ * @return bool
+ */
+function laravel_vendor_exists(ApplicationContract $app, ?string $workingPath = null): bool
+{
+    $filesystem = new Filesystem;
 
-    return $path;
+    $appVendorPath = $app->basePath('vendor');
+    $workingPath = $workingPath ?? package_path('vendor');
+
+    return $filesystem->isFile(join_paths($appVendorPath, 'autoload.php')) &&
+        $filesystem->hash(join_paths($appVendorPath, 'autoload.php')) === $filesystem->hash(join_paths($workingPath, 'autoload.php'));
 }
 
 /**
@@ -377,4 +413,24 @@ function phpunit_version_compare(string $version, ?string $operator = null)
     }
 
     return version_compare(Version::id(), $version, $operator);
+}
+
+/**
+ * Join the given paths together.
+ *
+ * @param  string|null  $basePath
+ * @param  string  ...$paths
+ * @return string
+ */
+function join_paths(?string $basePath, string ...$paths): string
+{
+    foreach ($paths as $index => $path) {
+        if (empty($path) && $path !== '0') {
+            unset($paths[$index]);
+        } else {
+            $paths[$index] = DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR);
+        }
+    }
+
+    return $basePath.implode('', $paths);
 }
