@@ -11,15 +11,27 @@ class ControllerGenerator
 {
     protected $command;
 
+    /**
+     * ControllerGenerator constructor.
+     * @param $command
+     */
     public function __construct($command)
     {
         $this->command = $command;
     }
 
+    /**
+     * Generate the controller and resource files
+     *
+     * @param $modelName
+     */
     public function generate($modelName): void
     {
         // Generate the resource file
         $this->generateResourceFile($modelName);
+
+        // Generate the request files
+        $this->generateRequestFiles($modelName);
 
         // Generate the controller file using the stub
         $this->generateControllerFile($modelName);
@@ -28,7 +40,6 @@ class ControllerGenerator
     protected function generateResourceFile($modelName): void
     {
         $resourceName = "{$modelName}Resource";
-//        $this->command->call('make:resource', ['name' => "{$resourceName}"], ['quiet' => true]);
         Artisan::call('make:resource', ['name' => $resourceName], new NullOutput());
 
         $resourceFile = app_path("Http/Resources/{$resourceName}.php");
@@ -54,6 +65,62 @@ class ControllerGenerator
         );
 
         FileHelper::write($resourceFile, $content);
+    }
+
+    protected function generateRequestFiles($modelName): void
+    {
+        // Generate store request
+        $this->generateRequestFile($modelName, 'StoreRequest.stub', "{$modelName}StoreRequest");
+
+        // Generate update request
+        $this->generateRequestFile($modelName, 'UpdateRequest.stub', "{$modelName}UpdateRequest");
+    }
+
+    protected function generateRequestFile($modelName, $stubName, $requestName): void
+    {
+        // Path to the stub
+        $stubPath = __DIR__ . "/../../stubs/{$stubName}";
+
+        // Check if the stub exists
+        if (!FileHelper::exists($stubPath)) {
+            $this->command->error("    Stub file not found: {$stubPath}");
+            return;
+        }
+
+        // Get the stub content
+        $stubContent = FileHelper::read($stubPath);
+
+        // Parse columns
+        $columns = $this->command->option('columns');
+        $columnsArray = [];
+        if ($columns) {
+            $columnsArray = $this->parseColumns($columns);
+        }
+
+        // Prepare dynamic replacements
+        $replacements = [
+            '{{ modelName }}' => $modelName,
+            '{{ storeValidationRules }}' => $this->generateValidationRules($columnsArray, 'store'),
+            '{{ updateValidationRules }}' => $this->generateValidationRules($columnsArray, 'update'),
+        ];
+
+        // Replace placeholders in the stub
+        $requestContent = str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $stubContent
+        );
+
+        // Write the request file
+        $requestDir = app_path('Http/Requests');
+        if (!FileHelper::exists($requestDir)) {
+            FileHelper::makeDirectory($requestDir, 0755);
+            $this->command->info("    Created directory: $requestDir");
+        }
+        $requestFilePath = "{$requestDir}/{$requestName}.php";
+
+        FileHelper::write($requestFilePath, $requestContent);
+        $this->command->info("    Request [{$requestFilePath}] created successfully.");
     }
 
     protected function generateControllerFile($modelName): void
@@ -126,15 +193,17 @@ class ControllerGenerator
     {
         $modelNamespace = "App\\Models\\{$modelName}";
         $resourceNamespace = "App\\Http\\Resources\\{$modelName}Resource";
+        $storeRequestNamespace = "App\\Http\\Requests\\{$modelName}StoreRequest";
+        $updateRequestNamespace = "App\\Http\\Requests\\{$modelName}UpdateRequest";
 
         return [
             '{{ modelNamespace }}' => $modelNamespace,
             '{{ resourceNamespace }}' => $resourceNamespace,
+            '{{ storeRequestNamespace }}' => $storeRequestNamespace,
+            '{{ updateRequestNamespace }}' => $updateRequestNamespace,
             '{{ controllerName }}' => "{$modelName}Controller",
             '{{ modelName }}' => $modelName,
             '{{ resourceName }}' => "{$modelName}Resource",
-            '{{ storeValidationRules }}' => $this->generateValidationRules($columnsArray, 'store'),
-            '{{ updateValidationRules }}' => $this->generateValidationRules($columnsArray, 'update'),
             '{{ fileColumns }}' => implode(', ', $fileColumnsNames),
         ];
     }

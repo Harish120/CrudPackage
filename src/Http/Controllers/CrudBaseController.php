@@ -8,22 +8,32 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller as LaravelBaseController;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controller;
 
-class BaseController extends LaravelBaseController
+class CrudBaseController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     protected $model;
     protected $resource;
 
+    /**
+     * CrudBaseController constructor.
+     * @param $model
+     * @param $resource
+     */
     public function __construct($model, $resource)
     {
         $this->model = $model;
         $this->resource = $resource;
     }
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         try {
@@ -49,11 +59,18 @@ class BaseController extends LaravelBaseController
         }
     }
 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(Request $request)
     {
         try {
-            $data = $request->validate($this->storeValidationRules());
-            $item = $this->model::create($data);
+            // Validation is handled by the request class
+            $item = $this->model::create($request->validated());
+
             return ApiResponse::success(new $this->resource($item), 'Record created successfully.', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ApiResponse::error('Validation failed.', 422, $e->errors());
@@ -62,6 +79,12 @@ class BaseController extends LaravelBaseController
         }
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function show($id)
     {
         try {
@@ -72,12 +95,21 @@ class BaseController extends LaravelBaseController
         }
     }
 
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update(Request $request, $id)
     {
         try {
             $item = $this->model::findOrFail($id);
-            $data = $request->validate($this->updateValidationRules());
-            $item->update($data);
+
+            // Validation is handled by the request class
+            $item->update($request->validated());
+
             return ApiResponse::success(new $this->resource($item), 'Record updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ApiResponse::error('Validation failed.', 422, $e->errors());
@@ -86,6 +118,12 @@ class BaseController extends LaravelBaseController
         }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy($id)
     {
         try {
@@ -95,17 +133,5 @@ class BaseController extends LaravelBaseController
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to delete record.', 500, ['error' => $e->getMessage()]);
         }
-    }
-
-    protected function storeValidationRules(): array
-    {
-        // This should be overridden in specific controllers if needed
-        return [];
-    }
-
-    protected function updateValidationRules(): array
-    {
-        // This should be overridden in specific controllers if needed
-        return [];
     }
 }

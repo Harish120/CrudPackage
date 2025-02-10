@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use {{ modelNamespace }};
 use {{ resourceNamespace }};
+use {{ storeRequestNamespace }};
+use {{ updateRequestNamespace }};
 use Harryes\CrudPackage\Http\Controllers\BaseController;
 
 class {{ controllerName }} extends BaseController
@@ -17,27 +19,25 @@ class {{ controllerName }} extends BaseController
     }
 
     /**
-     * Validation rules for storing a new resource.
+     * Store a newly created resource in storage.
      *
-     * @return array
+     * @param {{ storeRequestNamespace }} $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function storeValidationRules(): array
+    public function store({{ storeRequestNamespace }} $request)
     {
-        return [
-            {{ storeValidationRules }}
-        ];
+        return parent::store($request);
     }
 
     /**
-     * Validation rules for updating an existing resource.
+     * Update the specified resource in storage.
      *
-     * @return array
+     * @param {{ updateRequestNamespace }} $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function updateValidationRules(): array
+    public function update({{ updateRequestNamespace }} $request, $id)
     {
-        return [
-            {{ updateValidationRules }}
-        ];
+        return parent::update($request, $id);
     }
-
 }
