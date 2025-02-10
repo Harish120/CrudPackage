@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Foundation\Http\FormRequest;
 
 class CrudBaseController extends Controller
 {
@@ -62,10 +63,10 @@ class CrudBaseController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
+     * @param FormRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(FormRequest $request)
     {
         try {
             // Validation is handled by the request class
@@ -103,11 +104,11 @@ class CrudBaseController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param Request $request
-     * @param $id
+     * @param FormRequest $request
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(FormRequest $request, $id)
     {
         try {
             $item = $this->model::findOrFail($id);
