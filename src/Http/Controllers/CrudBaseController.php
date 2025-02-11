@@ -63,14 +63,23 @@ class CrudBaseController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param FormRequest $request
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(FormRequest $request)
+    public function store(Request $request)
     {
         try {
-            // Validation is handled by the request class
-            $item = $this->model::create($request->validated());
+            $storeRequestClass = "App\\Http\\Requests\\{$this->model}StoreRequest";
+            if (class_exists($storeRequestClass)) {
+                // Use the request class for validation
+                $validatedData = app($storeRequestClass)->validated();
+            } else {
+                // Use inline validation rules from the controller
+                $validatedData = $request->validate($this->storeValidationRules());
+            }
+
+            // Create the resource
+            $item = $this->model::create($validatedData);
 
             // Call afterCreateProcess on the model
             if (method_exists($item, 'afterCreateProcess')) {
@@ -104,17 +113,25 @@ class CrudBaseController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param FormRequest $request
+     * @param Request $request
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(FormRequest $request, $id)
+    public function update(Request $request, $id)
     {
         try {
-            $item = $this->model::findOrFail($id);
+            $updateRequestClass = "App\\Http\\Requests\\{$this->model}UpdateRequest";
+            if (class_exists($updateRequestClass)) {
+                // Use the request class for validation
+                $validatedData = app($updateRequestClass)->validated();
+            } else {
+                // Use inline validation rules from the controller
+                $validatedData = $request->validate($this->updateValidationRules());
+            }
 
-            // Validation is handled by the request class
-            $item->update($request->validated());
+            // Update the resource
+            $item = $this->model::findOrFail($id);
+            $item->update($validatedData);
 
             // Call afterUpdateProcess on the model
             if (method_exists($item, 'afterUpdateProcess')) {
@@ -144,5 +161,25 @@ class CrudBaseController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to delete record.', 500, ['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Validation rules for storing a new resource.
+     *
+     * @return array
+     */
+    protected function storeValidationRules(): array
+    {
+        return [];
+    }
+
+    /**
+     * Validation rules for updating an existing resource.
+     *
+     * @return array
+     */
+    protected function updateValidationRules(): array
+    {
+        return [];
     }
 }
