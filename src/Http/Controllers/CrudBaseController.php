@@ -45,12 +45,11 @@ class CrudBaseController extends Controller
             $perPage = $params['rowsPerPage'] ?? 0;
             $page = $params['page'] ?? 1;
 
-            if($perPage == 0) {
+            if ($perPage == 0) {
                 $items = $query->get();
                 $meta = null;
             } else {
                 $items = $query->paginate($perPage, ['*'], 'page', $page);
-
                 $meta = MetaHelper::paginationMeta($items);
             }
 
@@ -63,16 +62,16 @@ class CrudBaseController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
+     * @param mixed $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store($request)
     {
         try {
-            $storeRequestClass = "App\\Http\\Requests\\{$this->model}StoreRequest";
-            if (class_exists($storeRequestClass)) {
-                // Use the request class for validation
-                $validatedData = app($storeRequestClass)->validated();
+            // Check if the request is a FormRequest instance
+            if ($request instanceof FormRequest) {
+                // Use the request's validated data
+                $validatedData = $request->validated();
             } else {
                 // Use inline validation rules from the controller
                 $validatedData = $request->validate($this->storeValidationRules());
@@ -113,17 +112,17 @@ class CrudBaseController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param Request $request
+     * @param mixed $request
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update($request, $id)
     {
         try {
-            $updateRequestClass = "App\\Http\\Requests\\{$this->model}UpdateRequest";
-            if (class_exists($updateRequestClass)) {
-                // Use the request class for validation
-                $validatedData = app($updateRequestClass)->validated();
+            // Check if the request is a FormRequest instance
+            if ($request instanceof FormRequest) {
+                // Use the request's validated data
+                $validatedData = $request->validated();
             } else {
                 // Use inline validation rules from the controller
                 $validatedData = $request->validate($this->updateValidationRules());

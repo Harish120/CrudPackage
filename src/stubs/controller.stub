@@ -17,27 +17,4 @@ class {{ controllerName }} extends CrudBaseController
     {
         parent::__construct({{ modelName }}::class, {{ resourceName }}::class, [{{ fileColumns }}]);
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param {{ storeRequestNamespace }} $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function store({{ storeRequestNamespace }} $request)
-    {
-        return parent::store($request);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param {{ updateRequestNamespace }} $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update({{ updateRequestNamespace }} $request, $id)
-    {
-        return parent::update($request, $id);
-    }
 }
