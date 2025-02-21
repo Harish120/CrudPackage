@@ -18,8 +18,8 @@ class {{ controllerName }} extends CrudBaseController
         parent::__construct(
             {{ modelName }}::class,
             {{ resourceName }}::class,
-            {{ storeRequestName }}::class,
-            {{ updateRequestName }}::class
+            {{ modelName }}StoreRequest::class,
+            {{ modelName }}UpdateRequest::class
         );
     }
 }

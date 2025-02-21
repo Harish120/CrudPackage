@@ -24,8 +24,8 @@ class CrudBaseController extends Controller
      * CrudBaseController constructor.
      * @param $model
      * @param $resource
-     * @param string|null $storeRequest
-     * @param string|null $updateRequest
+     * @param $storeRequest
+     * @param $updateRequest
      */
     public function __construct($model, $resource, $storeRequest = null, $updateRequest = null)
     {
