@@ -4,7 +4,6 @@
   "minimum-stability": "stable",
   "license": "MIT",
   "type": "library",
-  "version": "1.0.2",
   "keywords": ["laravel", "crud", "api", "generator", "package", "laravel-package", "dynamic", "crud-generator"],
   "autoload": {
     "psr-4": {
@@ -41,6 +40,9 @@
       "providers": [
         "Harryes\\CrudPackage\\CrudPackageServiceProvider"
       ]
+    },
+    "branch-alias": {
+      "dev-main": "1.0.x-dev"
     }
   },
   "prefer-stable": true

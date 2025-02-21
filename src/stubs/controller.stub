@@ -15,6 +15,11 @@ class {{ controllerName }} extends CrudBaseController
      */
     public function __construct()
     {
-        parent::__construct({{ modelName }}::class, {{ resourceName }}::class, [{{ fileColumns }}]);
+        parent::__construct(
+            {{ modelName }}::class,
+            {{ resourceName }}::class,
+            {{ storeRequestName }}::class,
+            {{ updateRequestName }}::class
+        );
     }
 }

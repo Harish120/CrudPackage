@@ -17,16 +17,22 @@ class CrudBaseController extends Controller
 
     protected $model;
     protected $resource;
+    protected $storeRequest;
+    protected $updateRequest;
 
     /**
      * CrudBaseController constructor.
      * @param $model
      * @param $resource
+     * @param string|null $storeRequest
+     * @param string|null $updateRequest
      */
-    public function __construct($model, $resource)
+    public function __construct($model, $resource, $storeRequest = null, $updateRequest = null)
     {
         $this->model = $model;
         $this->resource = $resource;
+        $this->storeRequest = $storeRequest;
+        $this->updateRequest = $updateRequest;
     }
 
     /**
@@ -62,27 +68,25 @@ class CrudBaseController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param mixed $request
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store($request)
+    public function store(Request $request)
     {
         try {
-            // Check if the request is a FormRequest instance
-            if ($request instanceof FormRequest) {
-                // Use the request's validated data
-                $validatedData = $request->validated();
-            } else {
-                // Use inline validation rules from the controller
-                $validatedData = $request->validate($this->storeValidationRules());
+            $validatedData = $this->validateRequest($request, $this->storeRequest, 'storeValidationRules');
+
+            // Handle file uploads dynamically
+            foreach ($request->allFiles() as $key => $file) {
+                $validatedData[$key] = $file->store('uploads');
             }
 
             // Create the resource
             $item = $this->model::create($validatedData);
 
-            // Call afterCreateProcess on the model
-            if (method_exists($item, 'afterCreateProcess')) {
-                $item->afterCreateProcess($request);
+            // Call afterCreateCallback on the model if it exists
+            if (method_exists($item, 'afterCreateCallback')) {
+                $item->afterCreateCallback($request->all());
             }
 
             return ApiResponse::success(new $this->resource($item), 'Record created successfully.', 201);
@@ -92,6 +96,7 @@ class CrudBaseController extends Controller
             return ApiResponse::error('Failed to create record.', 500, ['error' => $e->getMessage()]);
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -116,25 +121,23 @@ class CrudBaseController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update($request, $id)
+    public function update($id, $request = null)
     {
         try {
-            // Check if the request is a FormRequest instance
-            if ($request instanceof FormRequest) {
-                // Use the request's validated data
-                $validatedData = $request->validated();
-            } else {
-                // Use inline validation rules from the controller
-                $validatedData = $request->validate($this->updateValidationRules());
+            $validatedData = $this->validateRequest($request, $this->updateRequest, 'updateValidationRules');
+
+            // Handle file uploads dynamically
+            foreach ($request->allFiles() as $key => $file) {
+                $validatedData[$key] = $file->store('uploads');
             }
 
-            // Update the resource
+            // Find and update the resource
             $item = $this->model::findOrFail($id);
             $item->update($validatedData);
 
-            // Call afterUpdateProcess on the model
-            if (method_exists($item, 'afterUpdateProcess')) {
-                $item->afterUpdateProcess($request);
+            // Call afterUpdateCallback on the model if it exists
+            if (method_exists($item, 'afterUpdateCallback')) {
+                $item->afterUpdateCallback($request->all());
             }
 
             return ApiResponse::success(new $this->resource($item), 'Record updated successfully.');
@@ -144,6 +147,7 @@ class CrudBaseController extends Controller
             return ApiResponse::error('Failed to update record.', 500, ['error' => $e->getMessage()]);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -163,22 +167,22 @@ class CrudBaseController extends Controller
     }
 
     /**
-     * Validation rules for storing a new resource.
+     * Validate the request using the injected custom request class or default method.
      *
+     * @param Request $request
+     * @param string|null $customRequest
+     * @param string $validationMethod
      * @return array
      */
-    protected function storeValidationRules(): array
+    protected function validateRequest(Request $request, ?string $customRequest, string $validationMethod): array
     {
-        return [];
-    }
+        if ($customRequest && class_exists($customRequest)) {
+            $validatedRequest = app($customRequest);
+            if ($validatedRequest instanceof FormRequest) {
+                return $validatedRequest->validated();
+            }
+        }
 
-    /**
-     * Validation rules for updating an existing resource.
-     *
-     * @return array
-     */
-    protected function updateValidationRules(): array
-    {
-        return [];
+        return $request->validate($this->$validationMethod());
     }
 }
