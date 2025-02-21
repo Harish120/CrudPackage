@@ -117,11 +117,11 @@ class CrudBaseController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param mixed $request
+     * @param Request $request
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update($id, $request = null)
+    public function update(Request $request, int $id)
     {
         try {
             $validatedData = $this->validateRequest($request, $this->updateRequest, 'updateValidationRules');
