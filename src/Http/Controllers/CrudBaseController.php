@@ -19,6 +19,7 @@ class CrudBaseController extends Controller
     protected $resource;
     protected $storeRequest;
     protected $updateRequest;
+    protected $queryCustomizer;
 
     /**
      * CrudBaseController constructor.
@@ -26,13 +27,15 @@ class CrudBaseController extends Controller
      * @param $resource
      * @param $storeRequest
      * @param $updateRequest
+     * @param callable|null $queryCustomizer
      */
-    public function __construct($model, $resource, $storeRequest = null, $updateRequest = null)
+    public function __construct($model, $resource, $storeRequest = null, $updateRequest = null, callable $queryCustomizer = null)
     {
         $this->model = $model;
         $this->resource = $resource;
         $this->storeRequest = $storeRequest;
         $this->updateRequest = $updateRequest;
+        $this->queryCustomizer = $queryCustomizer;
     }
 
     /**
@@ -46,6 +49,11 @@ class CrudBaseController extends Controller
         try {
             $params = $request->all();
             $query = $this->model::initializeQuery();
+
+            // Apply custom query modifications if provided
+            if ($this->queryCustomizer) {
+                $query = call_user_func($this->queryCustomizer, $query);
+            }
 
             // Paginate results
             $perPage = $params['rowsPerPage'] ?? 0;
@@ -107,7 +115,16 @@ class CrudBaseController extends Controller
     public function show($id)
     {
         try {
-            $item = $this->model::findOrFail($id);
+            $query = $this->model::query();
+
+            // Apply custom query modifications such as eager loading relationships
+            if (isset($this->queryCustomizer) && is_callable($this->queryCustomizer)) {
+                $query = call_user_func($this->queryCustomizer, $query);
+            }
+
+            // Fetch the item with modifications
+            $item = $query->findOrFail($id);
+
             return ApiResponse::success(new $this->resource($item), 'Record retrieved successfully.');
         } catch (\Exception $e) {
             return ApiResponse::error('Record not found.', 404, ['error' => $e->getMessage()]);
